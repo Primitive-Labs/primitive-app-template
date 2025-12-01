@@ -1,0 +1,6 @@
+@import "primitive-app/style.css";
+
+/* Scan local components for Tailwind classes */
+@source "./**/*.{vue,ts,js}";
+
+
