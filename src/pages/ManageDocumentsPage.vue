@@ -18,5 +18,3 @@ import { Card, CardContent, PrimitiveManageDocuments } from "primitive-app";
     </Card>
   </main>
 </template>
-
-
