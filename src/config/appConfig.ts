@@ -1,17 +1,14 @@
+import primitiveLogoIcon from "@/assets/primitive-logo.png";
 import { defineComponent, h } from "vue";
 
 const AppIcon = defineComponent({
   name: "AppIcon",
   setup() {
     return () =>
-      h(
-        "div",
-        {
-          class:
-            "flex items-center justify-center rounded-md border size-6 text-xs font-semibold",
-        },
-        "P"
-      );
+      h("img", {
+        src: primitiveLogoIcon,
+        alt: "App Icon",
+      });
   },
 });
 
@@ -29,7 +26,7 @@ export function getSingleDocumentConfig() {
     userVisibleDocumentName: "Document",
     userVisibleDocumentNamePlural: "Documents",
     defaultDocumentTitle: "My First Document",
-    allowDocumentSwitching: true,
-    manageDocumentsRouteName: undefined,
+    allowDocumentSwitching: false,
+    manageDocumentsRouteName: "documents",
   } as const;
 }
