@@ -24,7 +24,7 @@
     "js-bao-wss-client": "git+https://github.com/Primitive-Labs/js-bao-wss-client.git",
     "lucide-vue-next": "^0.548.0",
     "pinia": "^3.0.4",
-    "primitive-app": "file:../primitive-app",
+    "primitive-app": "github:Primitive-Labs/primitive-app",
     "reka-ui": "^2.6.0",
     "shadcn-vue": "^2.3.3",
     "tailwind-merge": "^3.4.0",
