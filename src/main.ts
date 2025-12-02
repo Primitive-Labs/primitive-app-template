@@ -8,8 +8,9 @@ import router from "./router/routes";
 import "./style.css";
 
 const envLogLevel =
-  (import.meta.env.VITE_LOG_LEVEL?.toLowerCase().trim() as LogLevel | undefined) ??
-  "debug";
+  (import.meta.env.VITE_LOG_LEVEL?.toLowerCase().trim() as
+    | LogLevel
+    | undefined) ?? "debug";
 
 void createPrimitiveApp({
   mainComponent: App,
@@ -25,11 +26,9 @@ void createPrimitiveApp({
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .catch((err) =>
-        // eslint-disable-next-line no-console
-        console.error("[SW] registration failed", err),
-      );
+    navigator.serviceWorker.register("/sw.js").catch((err) =>
+      // eslint-disable-next-line no-console
+      console.error("[SW] registration failed", err)
+    );
   });
 }

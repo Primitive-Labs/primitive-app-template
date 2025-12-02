@@ -8,7 +8,8 @@ const testGroups: PrimitiveTestGroup[] = [];
 </script>
 
 <template>
-  <PrimitiveTestHarnessApp :test-groups="testGroups" app-name="Template Tests" />
+  <PrimitiveTestHarnessApp
+    :test-groups="testGroups"
+    app-name="Template Tests"
+  />
 </template>
-
-

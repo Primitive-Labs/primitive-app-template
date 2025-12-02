@@ -1,0 +1,25 @@
+name = "primitive-app-template"
+main = "worker.js"
+compatibility_date = "2025-06-12"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# =============================================================================
+# PRODUCTION ENVIRONMENT
+# =============================================================================
+[env.production]
+name = "primitive-app-template-prod"
+
+# Attach a custom domain so the Worker is the origin for this host.
+[[env.production.routes]]
+pattern = "findash.primitive.app"   # <-- entire host goes to this Worker
+custom_domain = true
+
+[env.production.vars]
+APP_ID="01K8RKTZ46HEM2K7EG9ATZECHZ"
+API_ORIGIN = "https://primitiveapi.com/"
+REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
+REFRESH_PROXY_COOKIE_PATH = "/proxy/"

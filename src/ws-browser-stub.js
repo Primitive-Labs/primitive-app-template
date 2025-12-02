@@ -13,5 +13,3 @@ export default class WebSocketStub {
 // Export named exports that might be expected
 export const WebSocket = WebSocketStub;
 export const WebSocketServer = WebSocketStub;
-
-
