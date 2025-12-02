@@ -83,6 +83,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/debug",
     component: () => import("../pages/DebugSuiteLayout.vue"),
+    meta: {
+      primitiveRouterMeta: {
+        requireAuth: "admin",
+      },
+    },
     children: [
       {
         path: "",
