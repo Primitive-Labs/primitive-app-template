@@ -13,11 +13,6 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       ws: fileURLToPath(new URL("./src/ws-browser-stub.js", import.meta.url)),
-      "@pav": fileURLToPath(
-        new URL("../primitive-app/src", import.meta.url)
-      ),
     },
   },
 });
-
-
