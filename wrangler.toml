@@ -19,7 +19,9 @@ pattern = "findash.primitive.app"   # <-- entire host goes to this Worker
 custom_domain = true
 
 [env.production.vars]
-APP_ID="01K8RKTZ46HEM2K7EG9ATZECHZ"
+# Your production APP ID.  Should match what's configured in .env.production
+APP_ID="YOUR_PRODUCTION_APP_ID"
+
 API_ORIGIN = "https://primitiveapi.com/"
 REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
 REFRESH_PROXY_COOKIE_PATH = "/proxy/"
