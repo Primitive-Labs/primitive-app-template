@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { PieChart, TrendingDown } from "lucide-vue-next";
-import { PrimitiveLogin, createLogger, useAppConfigStore } from "primitive-app";
+import { PrimitiveLogin, useAppConfigStore } from "primitive-app";
 import { defineComponent, h, type Component } from "vue";
-
-const logger = createLogger({ scope: "LoginPage" });
 
 const appConfig = useAppConfigStore();
 
@@ -88,10 +86,6 @@ const carouselItems: Array<{
     content: Feature2Content,
   },
 ];
-
-logger.debug("Setup: ", {
-  carouselItemsCount: carouselItems.length,
-});
 </script>
 
 <template>

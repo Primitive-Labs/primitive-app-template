@@ -8,6 +8,8 @@ const testGroups: PrimitiveTestGroup[] = [];
 </script>
 
 <template>
-  <PrimitiveDebuggingSuite :test-groups="testGroups" app-name="Template Tests" />
+  <PrimitiveDebuggingSuite
+    :test-groups="testGroups"
+    app-name="Template Tests"
+  />
 </template>
-

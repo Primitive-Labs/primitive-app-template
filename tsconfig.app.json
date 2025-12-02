@@ -6,8 +6,7 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@pav/*": ["../primitive-app/src/*"]
+      "@/*": ["./src/*"]
     }
   }
 }

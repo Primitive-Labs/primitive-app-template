@@ -1,13 +1,15 @@
 // Environment and js-bao configuration for the template app
 import type { JsBaoClientOptions } from "js-bao-wss-client";
+import type { LogLevel } from "primitive-app";
 
-// Raw environment-derived config shared between router and js-bao
+// Raw environment-derived config shared between router, js-bao, and logging
 export const config = {
   appId: import.meta.env.VITE_APP_ID,
   apiUrl: import.meta.env.VITE_API_URL,
   wsUrl: import.meta.env.VITE_WS_URL,
   oauthRedirectUri: import.meta.env.VITE_OAUTH_REDIRECT_URI,
   enableAuthProxy: import.meta.env.VITE_ENABLE_AUTH_PROXY === "true",
+  logLevel: import.meta.env.VITE_LOG_LEVEL,
 };
 
 function getRefreshProxyBaseUrl(): string {
@@ -37,6 +39,23 @@ export function getJsBaoConfig(): JsBaoClientOptions {
   } as JsBaoClientOptions;
 }
 
+const VALID_LOG_LEVELS: LogLevel[] = ["debug", "info", "warn", "error", "none"];
+
+/**
+ * Returns the desired log level for the template app.
+ *
+ * This is the only place the template reads VITE_LOG_LEVEL. Consumers should
+ * call `getLogLevel()` and pass the result into
+ * `createPrimitiveApp({ logLevel })` and any app-created loggers.
+ */
+export function getLogLevel(): LogLevel {
+  const raw = config.logLevel;
+  if (!raw || typeof raw !== "string") return "warn";
+
+  const normalized = raw.toLowerCase().trim() as LogLevel;
+  return VALID_LOG_LEVELS.includes(normalized) ? normalized : "warn";
+}
+
 // Validate required configuration (dev aid)
 const requiredVars = ["appId", "apiUrl", "wsUrl", "oauthRedirectUri"] as const;
 const missingVars = requiredVars.filter(
@@ -44,9 +63,8 @@ const missingVars = requiredVars.filter(
 );
 
 if (missingVars.length > 0) {
-  // eslint-disable-next-line no-console
   console.error("Missing required environment variables:", missingVars);
-  // eslint-disable-next-line no-console
+
   console.error(
     "Please check your .env file and ensure all VITE_ prefixed variables are set"
   );
