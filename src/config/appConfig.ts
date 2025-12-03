@@ -1,4 +1,5 @@
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
+import { DocumentStoreMode } from "primitive-app";
 import { defineComponent, h } from "vue";
 
 const AppIcon = defineComponent({
@@ -18,6 +19,7 @@ export function getAppConfig() {
     homeRouteName: "home",
     loginRouteName: "login",
     appIcon: AppIcon,
+    documentStoreMode: DocumentStoreMode.SingleDocument,
   } as const;
 }
 
@@ -26,7 +28,6 @@ export function getSingleDocumentConfig() {
     userVisibleDocumentName: "Document",
     userVisibleDocumentNamePlural: "Documents",
     defaultDocumentTitle: "My First Document",
-    allowDocumentSwitching: false,
     manageDocumentsRouteName: "documents",
   } as const;
 }
