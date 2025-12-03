@@ -1,6 +1,6 @@
 ## Project Stack
 
-- This project uses vite, typescript, vue, vue-router, tailwind, shadcn-vue, and primitive-app and js-bao for data persistence. Do not deviate from this stack. If there are additional foundational components required, ask the user before installing them.
+- This project uses vite, typescript, vue, vue-router, tailwind, shadcn-vue, primitive-app and js-bao for data persistence. Do not deviate from this stack. If there are additional foundational components required, ask the user before installing them.
 
 ## Project Organization
 
