@@ -4,6 +4,7 @@ import {
   DebuggingSuiteDocuments,
   DebuggingSuiteHome,
   DebuggingSuiteTests,
+  DebugSuiteLayout,
   PrimitiveAppLayout,
   PrimitiveLoginLayout,
   PrimitiveLogout,
@@ -82,7 +83,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/debug",
-    component: () => import("../pages/DebugSuiteLayout.vue"),
+    component: DebugSuiteLayout,
+    props: {
+      testGroups: [],
+      appName: "Primitive App Demo",
+    },
     meta: {
       primitiveRouterMeta: {
         requireAuth: "admin",
