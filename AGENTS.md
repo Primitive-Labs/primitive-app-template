@@ -24,16 +24,28 @@
 - Try to keep components and source files under 500 LOC. Break into components if files get large.
 - Before completing a task review your work against DRY principles. Scan for code that might be duplicative. Refactor if there is a way to simplify or re-use code.
 - Prefer to delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, ask the user how to handle it. Don't assume.
+- Dev server is already running on http://localhost:5173. NEVER launch it yourself
 
 ## UI/UX Guidelines
 
 - Always try to use default shadcn-vue components if possible.
 - If necessary, compose these components into new ones, but don't just start from scratch.
 - You are welcome to install shadcn-vue components if they are not available, using the command line installation tool.
-- Avoid adding hard coded styles/colors when creating UI compoennts. Use component defaults or if needed explicit CSS variables that map to the shadcn-vue theme.
+- ALWAYS use TailwindCSS classes rather than manual CSS
+- DO NOT hard code colors, use Tailwind's color system
 - Avoid writing business logic in Vue components. Vue components should be focused on rendering and interaction. Move data processing and logic to a related lib file instead.
-- Primitive-app provides SkeletonGate to show skeletons while data is loading. Use by default where UI depends on data, waiting for the jsBaoDataLoader to return initialDataLoaded.
+- Primitive-app provides PrimitiveSkeletonGate to show skeletons while data is loading. Use by default where UI depends on data, waiting for the jsBaoDataLoader to return initialDataLoaded.
 - In general make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
+- ONLY add meaningful comments that explain why something is done, not what it does
+
+## Vue Code Guidelines
+
+- ALWAYS use Composition API + <script setup>, NEVER use Options API
+- ALWAYS Keep types alongside your code, use TypeScript for type safety, prefer interface over type for defining types
+- ALWAYS use named functions when declaring methods, use arrow functions only for callbacks
+- ALWAYS prefer named exports over default exports
+- AVOID watch/watchEffect if you can call code directly. For example, on a click, call a method to do work rather than set a variable that's watched elsewhere.
+- ALWAYS place Vue lifecycle methods (e.g. onMounted) as the first functions in the component.
 
 ## Data Storage and Loading
 
