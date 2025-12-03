@@ -58,3 +58,51 @@ pnpm dev
 ```
 
 Visit `http://localhost:5173` to see your app running.
+
+## Deploying to Production
+
+### 1. Prerequisites
+
+- **Cloudflare account** with access to deploy Workers.
+- **Wrangler CLI** installed in your project. Follow the official [Wrangler installation guide](https://developers.cloudflare.com/workers/wrangler/install-and-update/) and install it as a dev dependency using pnpm:
+
+```bash
+pnpm add -D wrangler@latest
+```
+
+### 2. Configure Production Environment
+
+Update `.env.production` with your production `VITE_APP_ID`. This can be the same App ID you use for development or a different one created specifically for production:
+
+```bash
+VITE_APP_ID=YOUR_PRODUCTION_APP_ID
+```
+
+Then update `wrangler.toml` to ensure the production environment uses the same App ID:
+
+```toml
+[env.production.vars]
+APP_ID = "YOUR_PRODUCTION_APP_ID"
+```
+
+Make sure the value of `APP_ID` in `wrangler.toml` matches `VITE_APP_ID` in `.env.production` and the App ID configured in the js-bao admin UI.
+
+### 3. Build for Production
+
+Create an optimized production build:
+
+```bash
+pnpm build
+```
+
+This will generate the static assets for your app in the `dist` directory, which Wrangler will deploy as your Worker’s assets.
+
+### 4. Deploy with Wrangler
+
+Once your production environment is configured and the app is built, deploy to Cloudflare Workers using the `production` environment defined in `wrangler.toml`:
+
+```bash
+npx wrangler deploy --env production
+```
+
+Wrangler will upload your Worker script, bind the `dist` assets, and configure any routes or custom domains specified under `[env.production]` in `wrangler.toml`.
