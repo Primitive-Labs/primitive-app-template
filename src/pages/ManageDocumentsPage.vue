@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardContent, PrimitiveManageDocuments } from "primitive-app";
+import { PrimitiveManageDocuments } from "primitive-app";
 </script>
 
 <template>
@@ -11,10 +11,10 @@ import { Card, CardContent, PrimitiveManageDocuments } from "primitive-app";
       </p>
     </section>
 
-    <Card class="p-0">
-      <CardContent class="p-0">
+    <section class="rounded-lg border bg-card text-card-foreground shadow-sm">
+      <div class="p-4 sm:p-6">
         <PrimitiveManageDocuments />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   </main>
 </template>

@@ -1,4 +1,4 @@
-name = "primitive-app-template"
+name = "YOUR APP NAME HERE"
 main = "worker.js"
 compatibility_date = "2025-06-12"
 
@@ -14,9 +14,9 @@ not_found_handling = "single-page-application"
 name = "primitive-app-template-prod"
 
 # Attach a custom domain so the Worker is the origin for this host.
-[[env.production.routes]]
-pattern = "findash.primitive.app"   # <-- entire host goes to this Worker
-custom_domain = true
+# [[env.production.routes]]
+# pattern = "YOUR URL NAME HERE"   # <-- entire host goes to this Worker
+# custom_domain = true
 
 [env.production.vars]
 # Your production APP ID.  Should match what's configured in .env.production

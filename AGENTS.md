@@ -25,17 +25,25 @@
 - Before completing a task review your work against DRY principles. Scan for code that might be duplicative. Refactor if there is a way to simplify or re-use code.
 - Prefer to delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, ask the user how to handle it. Don't assume.
 - Dev server is already running on http://localhost:5173. NEVER launch it yourself
+- js-bao is a client side library. All data syncing with the server is handled in the background. There is no place to write server code.
+- ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. NEVER use the primitiveAppBaseLogger.
 
 ## UI/UX Guidelines
 
-- Always try to use shadcn-vue components without modification if possible.
-- Install shadcn-vue components if they are not available in the current project, using the command line installation tool.
-- If necessary, compose these components into new ones, but don't just start from scratch.
+### CSS & Component Library
+
+- ALWAYS try to use shadcn-vue components without modification if possible.
+- ALWAYS install needed shadcn-vue components if they are not available in the current project, ONLY using the command line installation tool.
+- NEVER build components from scratch. If a default shadcn-vue component does not meet the project needs, create new components by composing shadcn-vue components.
 - ALWAYS use TailwindCSS classes rather than manual CSS
-- DO NOT hard code colors, use Tailwind's color system
-- Avoid writing business logic in Vue components. Vue components should be focused on rendering and interaction. Move data processing and logic to a related lib file instead.
-- Primitive-app provides PrimitiveSkeletonGate to show skeletons while data is loading. Use by default where UI depends on data, waiting for the jsBaoDataLoader to return initialDataLoaded.
-- In general make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
+- NEVER hard code colors, use Tailwind's color system
+
+### Writing Components
+
+- ALWAYS use PrimitiveSkeletonGate to show skeletons until jsBaoDataLoader sets initialDataLoaded.
+- It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
+- AVOID complex business logic in Vue components. Components should be focused on rendering and UI interaction - move more complex data manipulation and business logic to a related /lib file.
+- ALWAYS make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
 - ONLY add meaningful comments that explain why something is done, not what it does
 
 ## Vue Code Guidelines
@@ -44,17 +52,18 @@
 - ALWAYS Keep types alongside your code, use TypeScript for type safety, prefer interface over type for defining types
 - ALWAYS use named functions when declaring methods, use arrow functions only for callbacks
 - ALWAYS prefer named exports over default exports
-- AVOID watch/watchEffect if you can call code directly. For example, on a click, call a method to do work rather than set a variable that's watched elsewhere.
+- AVOID watch/watchEffect wherever possible. PREFER to call code directly after a user action or after loading data (e.g., directly in loadData).
 - ALWAYS place Vue lifecycle methods (e.g. onMounted) as the first functions in the component.
 
 ## Data Storage and Loading
 
-- This project uses js-bao for data persistence, and the js-bao-wss-client for interacting with the server. Never use alternatives.
-- js-bao is a client side library. All data syncing with the server is handled inthe background.
-- Refer to the README.md file in the js-bao and js-bao-wss-client node_modules directory for reference documentation on how to use js-bao and js-bao-wss-client.
-- Primitive-app provides useJsBaoDataLoader for easily loading data and watching for changes. Default to using this pattern to load data.
-- Prefer to load data in this function at the page component level. Pass data into sub components directly.
-- Never remove data fields from js-bao models, just add a comment that they have been deprecated.
+- ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the server. NEVER use alternatives.
+- ALWAYS refer to @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for instructions on how to create js-bao models and use the client.
+- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data and trigger any downstream changes needed from updated data.
+- PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
+- NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
+- ALWAYS add newly created models to the models param in getJsBaoConfig.
+- ALWAYS add logger.debug information in the loadData function so there is visibility into when data is loading or reloading.
 
 ## Using Primitive-app
 
