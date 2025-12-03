@@ -28,9 +28,9 @@
 
 ## UI/UX Guidelines
 
-- Always try to use default shadcn-vue components if possible.
+- Always try to use shadcn-vue components without modification if possible.
+- Install shadcn-vue components if they are not available in the current project, using the command line installation tool.
 - If necessary, compose these components into new ones, but don't just start from scratch.
-- You are welcome to install shadcn-vue components if they are not available, using the command line installation tool.
 - ALWAYS use TailwindCSS classes rather than manual CSS
 - DO NOT hard code colors, use Tailwind's color system
 - Avoid writing business logic in Vue components. Vue components should be focused on rendering and interaction. Move data processing and logic to a related lib file instead.
