@@ -1,6 +1,10 @@
 import { config } from "@/config/envConfig";
 import {
   createPrimitiveRouter,
+  DebuggingSuiteDocuments,
+  DebuggingSuiteHome,
+  DebuggingSuiteTests,
+  DebugSuiteLayout,
   PrimitiveAppLayout,
   PrimitiveLoginLayout,
   PrimitiveLogout,
@@ -74,6 +78,36 @@ const routes: RouteRecordRaw[] = [
           continueRoute: "home",
           loginRoute: "login",
         },
+      },
+    ],
+  },
+  {
+    path: "/debug",
+    component: DebugSuiteLayout,
+    props: {
+      testGroups: [],
+      appName: "Primitive App Demo",
+    },
+    meta: {
+      primitiveRouterMeta: {
+        requireAuth: "admin",
+      },
+    },
+    children: [
+      {
+        path: "",
+        name: "debug-home",
+        component: DebuggingSuiteHome,
+      },
+      {
+        path: "test",
+        name: "debug-test",
+        component: DebuggingSuiteTests,
+      },
+      {
+        path: "documents",
+        name: "debug-documents",
+        component: DebuggingSuiteDocuments,
       },
     ],
   },
