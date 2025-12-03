@@ -32,7 +32,7 @@
 - You are welcome to install shadcn-vue components if they are not available, using the command line installation tool.
 - Avoid adding hard coded styles/colors when creating UI compoennts. Use component defaults or if needed explicit CSS variables that map to the shadcn-vue theme.
 - Avoid writing business logic in Vue components. Vue components should be focused on rendering and interaction. Move data processing and logic to a related lib file instead.
-- Primitive-app provides SkeletonGate to show skeletons while data is loading. Use by default where UI depends on data, waiting for the jsBaoDataLoader to return initialDataLoaded.
+- Primitive-app provides PrimitiveSkeletonGate to show skeletons while data is loading. Use by default where UI depends on data, waiting for the jsBaoDataLoader to return initialDataLoaded.
 - In general make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
 
 ## Data Storage and Loading
