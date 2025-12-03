@@ -1,105 +1,60 @@
-# primitive-app-template
+# Primitive Labs Template App
 
-`primitive-app-template` is a minimal starter template for building new Vue 3 applications on top of the **primitive-app** library and js-bao.
-
-This repository is intended to be used as a GitHub template or cloned directly to create new application worktrees.
+A production-ready Vue application template built with TypeScript, Vite, and the `primitive-app` framework. This template provides a complete foundation for building modern web applications with authentication, document management, and real-time collaboration features.
 
 ## Requirements
 
-- **Node**: 22 or newer (latest major).
-- **Package manager**: `pnpm`.
 - **GitHub access** to:
   - `Primitive-Labs/primitive-app`
   - `Primitive-Labs/js-bao`
   - `Primitive-Labs/js-bao-wss-client`
 
-## Creating a new app from this template
+## Quick Start
 
-You can either use GitHub’s “Use this template” functionality, or clone the repository directly.
+### 1. Create a New Repository from Template
 
-### Clone via Git
+On [GitHub.com](https://github.com), navigate to this template repository and click the **"Use this template"** green button in the upper right. This will copy all the files to a new repository for your project.
 
-```bash
-git clone git@github.com:Primitive-Labs/primitive-app-template.git my-app
-cd my-app
-```
-
-### Configure environment variables
-
-Copy the example environment file and update values as needed:
+### 2. Clone Your New Repository
 
 ```bash
-cp .env.example .env
+git clone https://github.com/your-username/my-new-app.git
+cd my-new-app
 ```
 
-Edit `.env` to provide the correct settings for your js-bao backend and any other required configuration. The template’s `envConfig.ts` file shows how these values are consumed at runtime.
-
-### Install dependencies
-
-Install all dependencies with pnpm:
+### 3. Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### Run the development server
+### 4. Configure Google OAuth Client
 
-Start the Vite dev server:
+Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/auth/clients) and configure a new OAuth client:
 
-```bash
-pnpm dev
-```
+- **Authorized JavaScript origins**: By default, `http://localhost:5173`
+- **Authorized redirect URIs**: By default, `http://localhost:5173/oauth/callback`
 
-Build the app for production:
+Make note of your **Client ID** and **Client Secret** for the next step.
 
-```bash
-pnpm build
-```
+### 5. Set Up js-bao App
 
-Preview the production build locally:
+Go to the [js-bao admin page](https://admin.primitiveapi.com/login) and create a new app:
 
-```bash
-pnpm preview
-```
+- Add your **Google Client ID** and **Client Secret** from step 4
+- Add matching origin/callback URLs to match what you configured with Google
+- Make note of your **App ID** for the next step
 
-## Working with Git worktrees
+### 6. Configure Environment
 
-This template includes helper scripts under `scripts/` that make it easier to run a dev server against different Git worktrees.
+Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 5.
 
-You can start a dev server for a specific worktree label using:
+### 7. Start Developing!
 
-```bash
-pnpm dev <worktree-label>
-```
-
-The launcher will:
-
-1. Resolve `<worktree-label>` against the output of `git worktree list`.
-2. Start the dev server in that worktree directory.
-3. Set a `VITE_WORKTREE_LABEL` environment variable so the running app can display which worktree it is serving (for example, in the UI or browser tab title).
-
-If you omit the label:
+You can start the dev server with
 
 ```bash
 pnpm dev
 ```
 
-the dev server runs in the current directory, with labeling based on the active worktree when applicable.
-
-## Relationship to primitive-app
-
-The template depends on the `primitive-app` library via a GitHub-based dependency:
-
-```json
-"dependencies": {
-  "primitive-app": "github:Primitive-Labs/primitive-app"
-}
-```
-
-When you are working inside the `primitive-app-dev` monorepo, `pnpm` there overrides this dependency to point to the local `primitive-app` source directory instead. In standalone projects created from this template, the dependency will resolve to the `primitive-app` repository on GitHub.
-
-For full details on configuring and using the library itself, see:
-
-- `https://github.com/Primitive-Labs/primitive-app`
-
-
+Visit `http://localhost:5173` to see your app running.
