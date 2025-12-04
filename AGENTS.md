@@ -64,6 +64,7 @@
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
 - ALWAYS add newly created models to the models param in getJsBaoConfig.
 - ALWAYS add logger.debug information in the loadData function so there is visibility into when data is loading or reloading.
+- When using useJsBaoDataLoader, prefer returning a single structured object from loadData and, for sequences of related mutations (save/delete/reorder), set pauseUpdates while mutating then call a single reload() afterward to avoid mid-interaction flicker.
 
 ## Using Primitive-app
 
