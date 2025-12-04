@@ -1,3 +1,5 @@
 node_modules/
-dist/
 .DS_Store
+
+# Override parent ignore - include dist/ in subtree pushes
+!dist/
