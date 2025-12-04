@@ -5,10 +5,8 @@
 @source "./components/**/*.{vue,ts,js}";
 
 /* -------------------------------------------------------------------------- */
-/* Optional host theme variants (mirrors primitive-app-demo)                  */
+/* Optional      theme variants                                               */
 /*                                                                            */
-/* Apply a theme-* class to <html> to switch palettes. The default primitive  */
-/* theme is used when no theme-* class is present.                            */
 /* -------------------------------------------------------------------------- */
 
 /* Neutral theme – green/teal light & dark variant to contrast with default. */
