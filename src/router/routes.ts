@@ -2,6 +2,7 @@ import { config } from "@/config/envConfig";
 import {
   createPrimitiveRouter,
   DebuggingSuiteDocuments,
+  DebuggingSuiteDocumentsModel,
   DebuggingSuiteHome,
   DebuggingSuiteTests,
   DebugSuiteLayout,
@@ -108,6 +109,11 @@ const routes: RouteRecordRaw[] = [
         path: "documents",
         name: "debug-documents",
         component: DebuggingSuiteDocuments,
+      },
+      {
+        path: "documents/:model",
+        name: "debug-documents-model",
+        component: DebuggingSuiteDocumentsModel,
       },
     ],
   },
