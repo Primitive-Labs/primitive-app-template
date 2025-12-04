@@ -11,11 +11,11 @@ not_found_handling = "single-page-application"
 # PRODUCTION ENVIRONMENT
 # =============================================================================
 [env.production]
-name = "primitive-app-template-prod"
+name = "YOUR APP NAME HERE"
 
 # Attach a custom domain so the Worker is the origin for this host.
 # [[env.production.routes]]
-# pattern = "YOUR URL NAME HERE"   # <-- entire host goes to this Worker
+# pattern = "YOUR URL NAME HERE-prod"   # <-- entire host goes to this Worker
 # custom_domain = true
 
 [env.production.vars]
