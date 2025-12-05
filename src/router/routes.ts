@@ -91,7 +91,7 @@ const routes: RouteRecordRaw[] = [
     },
     meta: {
       primitiveRouterMeta: {
-        requireAuth: "admin",
+        requireAuth: "member", // or "admin" if you want to restrict access to admins only
       },
     },
     children: [

@@ -13,6 +13,14 @@ const AppIcon = defineComponent({
   },
 });
 
+/**
+ * App configuration factories used by primitive-app.
+ *
+ * These functions are called once during bootstrap and are not reactive.
+ * Changing what they would return at runtime will not update an already
+ * bootstrapped application.
+ */
+
 export function getAppConfig() {
   return {
     appName: "Primitive Starter App",
