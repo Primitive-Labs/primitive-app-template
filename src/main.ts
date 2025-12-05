@@ -1,6 +1,6 @@
 import { getAppConfig, getSingleDocumentConfig } from "@/config/appConfig";
 import { getJsBaoConfig, getLogLevel } from "@/config/envConfig";
-import { templateNavigationConfig } from "@/config/navigationConfig";
+import { getNavigationConfig } from "@/config/navigationConfig";
 import { createPrimitiveApp } from "primitive-app";
 import App from "./App.vue";
 import router from "./router/routes";
@@ -11,10 +11,10 @@ void createPrimitiveApp({
   router,
   getAppConfig,
   getJsBaoConfig,
-  navigationConfig: templateNavigationConfig,
+  getNavigationConfig,
   getSingleDocumentConfig,
   loginUrl: "/login",
-  logLevel: getLogLevel(),
+  getLogLevel,
 });
 
 if ("serviceWorker" in navigator) {

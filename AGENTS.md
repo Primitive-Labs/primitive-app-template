@@ -22,11 +22,13 @@
 - Prefer strong typing and invariants over scattered defensive code.
 - Don't mask missing required inputs with inline fallbacks.
 - Try to keep components and source files under 500 LOC. Break into components if files get large.
-- Before completing a task review your work against DRY principles. Scan for code that might be duplicative. Refactor if there is a way to simplify or re-use code.
+- Before completing a task review your work against the DRY principle. Scan for code that might be duplicative. Refactor if there is a way to simplify or re-use code.
 - Prefer to delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, ask the user how to handle it. Don't assume.
 - Dev server is already running on http://localhost:5173. NEVER launch it yourself
 - js-bao is a client side library. All data syncing with the server is handled in the background. There is no place to write server code.
 - ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. Pass in the current log level with an explicit "level: getLogLevel()". NEVER use the primitiveAppBaseLogger.
+- ONLY add meaningful comments that explain why something is done, not what it does
+- ALWAYS run pnpm build after making changes and fix any errors.
 
 ## Vue Code Guidelines
 
@@ -52,7 +54,7 @@
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
-- ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen
+- ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen after creating a new model.
 - ALWAYS add logger.debug information in the loadData function so there is visibility into when data is loading or reloading.
 - When using useJsBaoDataLoader, ALWAYS return a single structured object from loadData and, for sequences of related mutations (save/delete/reorder), set pauseUpdates while mutating then call a single reload() afterward to avoid mid-interaction flicker.
 
@@ -72,4 +74,3 @@
 - It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
 - AVOID complex business logic in Vue components. Components should be focused on rendering and UI interaction - move more complex data manipulation and business logic to a related /lib file.
 - ALWAYS make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
-- ONLY add meaningful comments that explain why something is done, not what it does

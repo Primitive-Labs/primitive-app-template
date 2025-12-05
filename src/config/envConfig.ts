@@ -45,8 +45,10 @@ const VALID_LOG_LEVELS: LogLevel[] = ["debug", "info", "warn", "error", "none"];
  * Returns the desired log level for the template app.
  *
  * This is the only place the template reads VITE_LOG_LEVEL. Consumers should
- * call `getLogLevel()` and pass the result into
- * `createPrimitiveApp({ logLevel })` and any app-created loggers.
+ * call `getLogLevel` and pass the function into
+ * `createPrimitiveApp({ getLogLevel })` and any app-created loggers.
+ *
+ * This factory is called once during bootstrap and is not reactive.
  */
 export function getLogLevel(): LogLevel {
   const raw = config.logLevel;
