@@ -42,7 +42,7 @@
 
 ## Using Primitive-app
 
-- Primitive-app provides configuration based support for common usage patterns. In general start by modifing config data to accomplish your goals. Refer to @./src/node_modules/primitive-app/AGENTS.md for reference documentation on how to use this library.
+- Primitive-app provides configuration based support for common usage patterns. In general start by modifing config data to accomplish your goals. Refer to @./src/node_modules/primitive-app/README.md for reference documentation on how to use this library.
 - If configuration options aren't available, you can customize primitive-app by creating new layouts and new components.
 - Refer to documentation for primitive-app in the README and /docs directory in the installed primitive-app in node_modules.
 - Primitive-app includes a browser based test harness which is the best way to write application level tests that use js-bao. If you've created a new lib file or function, you should add tests to the test harness to make sure that business logic is working properly.
@@ -75,3 +75,7 @@
 - It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
 - AVOID complex business logic in Vue components. Components should be focused on rendering and UI interaction - move more complex data manipulation and business logic to a related /lib file.
 - ALWAYS make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
+
+## Writing Tests
+
+- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib. For every new lib file/function think about writing tests that cover key cases. Refer to the primitive-app @./node_modules/README.md for examples.
