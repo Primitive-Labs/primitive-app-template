@@ -28,6 +28,7 @@
 - js-bao is a client side library. All data syncing with the server is handled in the background. There is no place to write server code.
 - ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. Pass in the current log level with an explicit "level: getLogLevel()". NEVER use the primitiveAppBaseLogger.
 - ONLY add meaningful comments that explain why something is done, not what it does
+- ALWAYS organize functions in code files in a logical order (e.g. "initialze" functions at the top of the file, a logical sequence or grouping, etc.). Add comments to break up sections of related functions.
 - ALWAYS run pnpm build after making changes and fix any errors.
 
 ## Vue Code Guidelines
@@ -36,7 +37,7 @@
 - ALWAYS Keep types alongside your code, use TypeScript for type safety, prefer interface over type for defining types
 - ALWAYS use named functions when declaring methods, use arrow functions only for callbacks
 - ALWAYS prefer named exports over default exports
-- AVOID watch/watchEffect wherever possible. PREFER to call code directly after a user action or after loading data (e.g., directly in loadData).
+- AVOID watch/watchEffect wherever possible. PREFER to call code directly after a user action or after loading data.
 - ALWAYS place Vue lifecycle methods (e.g. onMounted) as the first functions in the component.
 
 ## Using Primitive-app
@@ -50,12 +51,12 @@
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend.
 - ALWAYS refer to @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for instructions on how to create js-bao models and use the client.
-- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data and trigger any downstream changes needed from updated data.
+- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data.
+- NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, just do that in the loadData function.
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
 - ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen after creating a new model.
-- ALWAYS add logger.debug information in the loadData function so there is visibility into when data is loading or reloading.
 - When using useJsBaoDataLoader, ALWAYS return a single structured object from loadData and, for sequences of related mutations (save/delete/reorder), set pauseUpdates while mutating then call a single reload() afterward to avoid mid-interaction flicker.
 
 ## UI/UX Guidelines
