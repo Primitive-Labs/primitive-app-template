@@ -28,6 +28,7 @@
 - js-bao is a client side library. All data syncing with the server is handled in the background. There is no place to write server code.
 - ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. Pass in the current log level with an explicit "level: getLogLevel()". NEVER use the primitiveAppBaseLogger.
 - ONLY add meaningful comments that explain why something is done, not what it does
+- ALWAYS organize functions in code files in a logical order (e.g. "initialze" functions at the top of the file, a logical sequence or grouping, etc.). Add comments to break up sections of related functions.
 - ALWAYS run pnpm build after making changes and fix any errors.
 
 ## Vue Code Guidelines
@@ -36,27 +37,39 @@
 - ALWAYS Keep types alongside your code, use TypeScript for type safety, prefer interface over type for defining types
 - ALWAYS use named functions when declaring methods, use arrow functions only for callbacks
 - ALWAYS prefer named exports over default exports
-- AVOID watch/watchEffect wherever possible. PREFER to call code directly after a user action or after loading data (e.g., directly in loadData).
-- ALWAYS place Vue lifecycle methods (e.g. onMounted) as the first functions in the component.
+- AVOID watch/watchEffect wherever possible. PREFER to call code directly after a user action or after loading data.
+- ALWAYS place Vue lifecycle methods (e.g. onMounted) as the first functions in the component
+- ALWAYS use Pinia for state management. Pina stores should expose:
+  - State – refs/reactive objects that can be returned
+  - Getters – derived, reactive values from state
+  - Actions – functions that do stuff (async, mutations, side effects)
+- AVOID writing exported functions in Pina stores that return non-reactive state. Helper functions should be internal, actions can return non-reactive status, but shouldn't return non-reactive state. Use reactive getters instead.
 
 ## Using Primitive-app
 
-- Primitive-app provides configuration based support for common usage patterns. In general start by modifing config data to accomplish your goals. Refer to @./src/node_modules/primitive-app/AGENTS.md for reference documentation on how to use this library.
+- Primitive-app provides configuration based support for common usage patterns. In general start by modifing config data to accomplish your goals. Refer to @./src/node_modules/primitive-app/README.md for reference documentation on how to use this library.
 - If configuration options aren't available, you can customize primitive-app by creating new layouts and new components.
 - Refer to documentation for primitive-app in the README and /docs directory in the installed primitive-app in node_modules.
 - Primitive-app includes a browser based test harness which is the best way to write application level tests that use js-bao. If you've created a new lib file or function, you should add tests to the test harness to make sure that business logic is working properly.
 
-## Data Storage and Loading
+### Data Storage and Loading
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend.
 - ALWAYS refer to @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for instructions on how to create js-bao models and use the client.
-- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data and trigger any downstream changes needed from updated data.
+- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
+- NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, just do that in the loadData function.
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
 - ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen after creating a new model.
-- ALWAYS add logger.debug information in the loadData function so there is visibility into when data is loading or reloading.
 - When using useJsBaoDataLoader, ALWAYS return a single structured object from loadData and, for sequences of related mutations (save/delete/reorder), set pauseUpdates while mutating then call a single reload() afterward to avoid mid-interaction flicker.
+
+### useJsBaoDataLoader Pattern
+
+- ALWAYS pass a `documentReady` ref/computed to `useJsBaoDataLoader`. For single-document apps, use `useSingleDocumentStore().isReady`. For multi-document collections, use `multiDocStore.getCollectionReadyRef("collectionName")`.
+- The loader returns `initialDataLoaded` which becomes `true` only after the first successful `loadData` call completes. Use this (not `documentReady`) with `PrimitiveSkeletonGate`.
+- Make rendering/redirect decisions based on the loaded `data`, not on document counts or other intermediate state. Only act on data after `initialDataLoaded` is true.
+- If you need to perform a side effect (like a redirect) after data loads, use a `watch` on `initialDataLoaded` that fires once when it becomes true, then make decisions based on `data.value`.
 
 ## UI/UX Guidelines
 
@@ -74,3 +87,12 @@
 - It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
 - AVOID complex business logic in Vue components. Components should be focused on rendering and UI interaction - move more complex data manipulation and business logic to a related /lib file.
 - ALWAYS make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
+
+### PrimitiveSkeletonGate Pattern
+
+- ALWAYS use `PrimitiveSkeletonGate` with `:is-ready="initialDataLoaded"` to show loading state while data loads.
+- For skeleton content, create a Skeleton component using shadcn-vue Skeleton that mimics the eventual loaded data on the page.
+
+## Writing Tests
+
+- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib. For every new lib file/function think about writing tests that cover key cases. Refer to the primitive-app @./node_modules/README.md for examples.

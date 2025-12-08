@@ -11,6 +11,8 @@
     "dev": "pnpm codegen && node scripts/dev-launch.mjs",
     "build": "pnpm codegen && pnpm format && run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "clean-modules": "rm -rf node_modules pnpm-lock.yaml",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
