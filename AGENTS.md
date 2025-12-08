@@ -56,7 +56,7 @@
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend.
 - ALWAYS refer to @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for instructions on how to create js-bao models and use the client.
-- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data.
+- ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
 - NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, just do that in the loadData function.
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
