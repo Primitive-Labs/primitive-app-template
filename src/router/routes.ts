@@ -9,6 +9,7 @@ import {
   PrimitiveAppLayout,
   PrimitiveLoginLayout,
   PrimitiveLogout,
+  PrimitiveNotFound,
   PrimitiveOauthCallback,
 } from "primitive-app";
 import type { RouteRecordRaw } from "vue-router";
@@ -116,6 +117,16 @@ const routes: RouteRecordRaw[] = [
         component: DebuggingSuiteDocumentsModel,
       },
     ],
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "not-found",
+    component: PrimitiveNotFound,
+    meta: {
+      primitiveRouterMeta: {
+        requireAuth: "none",
+      },
+    },
   },
 ];
 
