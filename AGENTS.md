@@ -95,4 +95,4 @@
 
 ## Writing Tests
 
-- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib. For every new lib file/function think about writing tests that cover key cases. Refer to the primitive-app @./node_modules/README.md for examples.
+- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib files/functions. For every new lib file/function think about writing tests that cover key cases. Refer to the primitive-app @./node_modules/README.md for examples.
