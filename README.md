@@ -15,20 +15,31 @@ A production-ready Vue application template built with TypeScript, Vite, and the
 
 On [GitHub.com](https://github.com), navigate to this template repository and click the **"Use this template"** green button in the upper right. This will copy all the files to a new repository for your project.
 
-### 2. Clone Your New Repository
+### 2. Install pnpm
+
+This project uses [pnpm](https://pnpm.io/) as its package manager. The easiest way to install pnpm is using [Corepack](https://nodejs.org/api/corepack.html), which is included with Node.js 16+:
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
+If you prefer, you can also install pnpm using other methods described in the [pnpm installation guide](https://pnpm.io/installation).
+
+### 3. Clone Your New Repository
 
 ```bash
 git clone https://github.com/your-username/my-new-app.git
 cd my-new-app
 ```
 
-### 3. Install Dependencies
+### 4. Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 4. Configure Google OAuth Client
+### 5. Configure Google OAuth Client
 
 Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/auth/clients) and configure a new OAuth client:
 
@@ -37,19 +48,19 @@ Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/aut
 
 Make note of your **Client ID** and **Client Secret** for the next step.
 
-### 5. Set Up js-bao App
+### 6. Set Up js-bao App
 
 Go to the [js-bao admin page](https://admin.primitiveapi.com/login) and create a new app:
 
-- Add your **Google Client ID** and **Client Secret** from step 4
+- Add your **Google Client ID** and **Client Secret** from step 5
 - Add matching origin/callback URLs to match what you configured with Google
 - Make note of your **App ID** for the next step
 
-### 6. Configure Environment
+### 7. Configure Environment
 
-Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 5.
+Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 6.
 
-### 7. Start Developing!
+### 8. Start Developing!
 
 You can start the dev server with
 
