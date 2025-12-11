@@ -71,6 +71,13 @@
 - Make rendering/redirect decisions based on the loaded `data`, not on document counts or other intermediate state. Only act on data after `initialDataLoaded` is true.
 - If you need to perform a side effect (like a redirect) after data loads, use a `watch` on `initialDataLoaded` that fires once when it becomes true, then make decisions based on `data.value`.
 
+### Data modeling and working with multiple documents and the `multiDocStore`
+
+- JS-Bao query always operates over all open documents. You NEVER need to iterate over documents to query.
+- ALWAYS model data references entirely in objects, using the model ID to create connections. Don't rely on document boundaries for modeling relationships.
+- ONLY use documentIds for APIs that require them (sharing, invitations, blobs) not for filters or instead of object-level ID references.
+- From an object you can get the document its stored in by using the \_metaDocId field.
+
 ## UI/UX Guidelines
 
 ### CSS & Component Library
