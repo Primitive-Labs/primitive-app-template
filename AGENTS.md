@@ -59,6 +59,7 @@
 - ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
 - NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, just do that in the loadData function.
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
+- PREFER filtering for needed data using js-bao .query() rather than querying all objects and filtering in Javascript. If those queryParams can be changed by application state, pass those to the jsBaoDataLoader via queryParams.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
 - ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen after creating a new model.
@@ -68,14 +69,14 @@
 
 - ALWAYS pass a `documentReady` ref/computed to `useJsBaoDataLoader`. For single-document apps, use `useSingleDocumentStore().isReady`. For multi-document collections, use `multiDocStore.getCollectionReadyRef("collectionName")`.
 - The loader returns `initialDataLoaded` which becomes `true` only after the first successful `loadData` call completes. Use this (not `documentReady`) with `PrimitiveSkeletonGate`.
-- Make rendering/redirect decisions based on the loaded `data`, not on document counts or other intermediate state. Only act on data after `initialDataLoaded` is true.
+- Make rendering/redirect decisions based ONLY on the loaded `data`. Only act on data after `initialDataLoaded` is true.
 - If you need to perform a side effect (like a redirect) after data loads, use a `watch` on `initialDataLoaded` that fires once when it becomes true, then make decisions based on `data.value`.
 
 ### Data modeling and working with multiple documents and the `multiDocStore`
 
-- JS-Bao query always operates over all open documents. You NEVER need to iterate over documents to query.
-- ALWAYS model data references entirely in objects, using the model ID to create connections. Don't rely on document boundaries for modeling relationships.
-- ONLY use documentIds for APIs that require them (sharing, invitations, blobs) not for filters or instead of object-level ID references.
+- JS-Bao query always operates over ALL open documents. You NEVER need to iterate over documents to query. You can filter results by documentId or any other field on the ORM.
+- ALWAYS model data references entirely in objects, using model IDs to create connections. Don't rely on document boundaries for modeling relationships.
+- PREFER using model IDs as identifiers (in routes, queries etc.), not documentIds. Use documentIds when REQUIRED for APIs like sharing, setting model save location, etc.
 - From an object you can get the document its stored in by using the \_metaDocId field.
 
 ## UI/UX Guidelines
