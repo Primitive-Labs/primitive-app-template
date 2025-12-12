@@ -1,4 +1,5 @@
 // Environment and js-bao configuration for the template app
+import { allModels } from "@/models";
 import type { JsBaoClientOptions } from "js-bao-wss-client";
 import type { LogLevel } from "primitive-app";
 
@@ -36,6 +37,7 @@ export function getJsBaoConfig(): JsBaoClientOptions {
     wsUrl: config.wsUrl,
     oauthRedirectUri: config.oauthRedirectUri,
     auth,
+    models: allModels,
   } as JsBaoClientOptions;
 }
 
