@@ -77,7 +77,7 @@
 - JS-Bao query always operates over ALL open documents. You NEVER need to iterate over documents to query. You can filter results by documentId or any other field on the ORM.
 - ALWAYS model data references entirely in objects, using model IDs to create connections. Don't rely on document boundaries for modeling relationships.
 - PREFER using model IDs as identifiers (in routes, queries etc.), not documentIds. Use documentIds when REQUIRED for APIs like sharing, setting model save location, etc.
-- From an object you can get the document its stored in by using the \_metaDocId field.
+- From an object you can get the document its stored in by accessing the model object's getDocumentId() function.
 
 ## UI/UX Guidelines
 
