@@ -2,6 +2,10 @@
 
 A production-ready Vue application template built with TypeScript, Vite, and the `primitive-app` framework. This template provides a complete foundation for building modern web applications with authentication, document management, and real-time collaboration features.
 
+## Documentation
+
+For guides and API reference docs, see **Primitive Docs**: https://primitive-labs.github.io/primitive-docs/
+
 ## Requirements
 
 - **GitHub access** to:
