@@ -1,5 +1,6 @@
+import { Key, LogOut } from "lucide-vue-next";
 import type { NavigationConfig } from "primitive-app";
-import { NavigationOverflowMode } from "primitive-app";
+import { NavigationOverflowMode, PasskeyManagement } from "primitive-app";
 
 /**
  * Navigation configuration factory for the template app.
@@ -23,11 +24,20 @@ export function getNavigationConfig(): NavigationConfig {
         navGroup: "main",
         routeName: "home",
       },
+      managePasskeys: {
+        key: "managePasskeys",
+        navTitle: "Manage Passkeys",
+        navGroup: "user-menu",
+        action: "manage-passkeys",
+        actionComponent: PasskeyManagement,
+        icon: Key,
+      },
       logout: {
         key: "logout",
         navTitle: "Log out",
         navGroup: "user-menu",
         routeName: "logout",
+        icon: LogOut,
       },
     },
   } as const;
