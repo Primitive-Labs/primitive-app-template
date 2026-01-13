@@ -6,13 +6,6 @@ A production-ready Vue application template built with TypeScript, Vite, and the
 
 For guides and API reference docs, see **Primitive Docs**: https://primitive-labs.github.io/primitive-docs/
 
-## Requirements
-
-- **GitHub access** to:
-  - `Primitive-Labs/primitive-app`
-  - `Primitive-Labs/js-bao`
-  - `Primitive-Labs/js-bao-wss-client`
-
 ## Quick Start
 
 ### 1. Create a New Repository from Template
