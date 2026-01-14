@@ -110,7 +110,7 @@ This will generate the static assets for your app in the `dist` directory, which
 Once your production environment is configured and the app is built, deploy to Cloudflare Workers using the `production` environment defined in `wrangler.toml`:
 
 ```bash
-npx wrangler deploy --env production
+pnpm dlx wrangler deploy --env production
 ```
 
 Wrangler will upload your Worker script, bind the `dist` assets, and configure any routes or custom domains specified under `[env.production]` in `wrangler.toml`.
