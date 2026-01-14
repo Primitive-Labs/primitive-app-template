@@ -28,6 +28,14 @@ export function getAppConfig() {
     loginRouteName: "login",
     appIcon: AppIcon,
     documentStoreMode: DocumentStoreMode.SingleDocument,
+    // Profile completion/editing configuration
+    // Controls which fields are shown when completing or editing user profiles
+    profileConfig: {
+      requestName: true, // Show name field in profile forms
+      requireName: true, // Name is required before continuing
+      requestAvatar: true, // Show avatar field in profile forms
+      requireAvatar: false, // Avatar is optional
+    },
   } as const;
 }
 

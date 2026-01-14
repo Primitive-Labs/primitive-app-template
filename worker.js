@@ -1,50 +1,45 @@
 const PROXY_PREFIX = "/proxy";
-const REFRESH_PATH = `${PROXY_PREFIX}/auth/refresh`;
-const LOGOUT_PATH = `${PROXY_PREFIX}/auth/logout`;
-const OAUTH_CALLBACK_PATH = `${PROXY_PREFIX}/oauth/callback`;
+// Supported proxy path prefixes - requests matching these are forwarded to the API
+const PROXY_AUTH_PREFIX = `${PROXY_PREFIX}/auth/`;
+const PROXY_OAUTH_PREFIX = `${PROXY_PREFIX}/oauth/`;
 
-const toOrigin = (value, fallbackBase) => {
+// Environment variable availability helper
+const getEnvAvailability = (env) => ({
+  VITE_API_URL: !!env.VITE_API_URL,
+  VITE_WS_URL: !!env.VITE_WS_URL,
+  VITE_APP_ID: !!env.VITE_APP_ID,
+  VITE_OAUTH_REDIRECT_URI: !!env.VITE_OAUTH_REDIRECT_URI,
+  VITE_PERF_ENABLED: !!env.VITE_PERF_ENABLED,
+  VITE_ENVIRONMENT: !!env.VITE_ENVIRONMENT,
+  VITE_USE_REFRESH_PROXY: !!env.VITE_USE_REFRESH_PROXY,
+  VITE_REFRESH_PROXY_BASE_URL: !!env.VITE_REFRESH_PROXY_BASE_URL,
+  VITE_REFRESH_PROXY_COOKIE_MAX_AGE: !!env.VITE_REFRESH_PROXY_COOKIE_MAX_AGE,
+});
+
+const toOrigin = (value) => {
   if (!value || typeof value !== "string") return null;
-
-  const tryParse = (candidate) => {
-    if (!candidate || typeof candidate !== "string") return null;
+  try {
+    const parsed = new URL(value);
+    return parsed.origin;
+  } catch {
     try {
-      return new URL(candidate).origin;
+      const parsed = new URL(value, "https://placeholder.example");
+      return `${parsed.protocol}//${parsed.host}`;
     } catch {
       return null;
     }
-  };
-
-  const trimmed = value.trim();
-  const direct = tryParse(trimmed);
-  if (direct) {
-    return direct;
   }
-
-  if (!trimmed.includes("://")) {
-    const httpsCandidate = tryParse(`https://${trimmed.replace(/^\/+/, "")}`);
-    if (httpsCandidate) {
-      return httpsCandidate;
-    }
-  }
-
-  if (fallbackBase) {
-    const baseOrigin = tryParse(fallbackBase.trim());
-    if (baseOrigin) {
-      try {
-        return new URL(trimmed, ensureEndsWithSlash(baseOrigin)).origin;
-      } catch {
-        // no-op
-      }
-    }
-  }
-
-  return null;
 };
 
-const ensureEndsWithSlash = (value, fallback = "/") => {
-  if (!value || typeof value !== "string") return fallback;
-  return value.endsWith("/") ? value : `${value}/`;
+const ensureSingleLeadingSlash = (value) => {
+  if (!value || typeof value !== "string") return "/";
+  if (!value.startsWith("/")) {
+    return ensureSingleLeadingSlash(`/${value}`);
+  }
+  while (value.startsWith("//")) {
+    value = value.slice(1);
+  }
+  return value === "" ? "/" : value;
 };
 
 const parseCookies = (header) => {
@@ -115,18 +110,15 @@ const serializeCookie = ({
 };
 
 const getProxyConfig = (env) => {
-  const apiOrigin = toOrigin(
-    env.API_ORIGIN || env.VITE_API_URL,
-    env.API_ORIGIN
-  );
+  const apiOrigin = toOrigin(env.API_ORIGIN || env.VITE_API_URL);
   const appId = env.APP_ID || env.VITE_APP_ID;
   const cookieName = appId ? `rt-${appId}` : null;
   const rawMaxAge = env.REFRESH_PROXY_COOKIE_MAX_AGE;
   const parsedMaxAge =
     typeof rawMaxAge === "string" ? Number.parseInt(rawMaxAge, 10) : NaN;
   const cookieMaxAge =
-    Number.isFinite(parsedMaxAge) && parsedMaxAge > 0 ? parsedMaxAge : 604800;
-  const cookiePath = ensureEndsWithSlash(
+    Number.isFinite(parsedMaxAge) && parsedMaxAge > 0 ? parsedMaxAge : 604800; // 7 days default
+  const cookiePath = ensureSingleLeadingSlash(
     env.REFRESH_PROXY_COOKIE_PATH || PROXY_PREFIX
   );
 
@@ -219,8 +211,13 @@ const buildProxyResponse = async ({
   });
 };
 
+const ensureOriginEndsWithSlash = (value) => {
+  if (!value || typeof value !== "string") return "/";
+  return value.endsWith("/") ? value : `${value}/`;
+};
+
 const buildUpstreamUrl = (origin, appId, path) => {
-  const normalizedOrigin = ensureEndsWithSlash(origin || "");
+  const normalizedOrigin = ensureOriginEndsWithSlash(origin || "");
   const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
   return `${normalizedOrigin}app/${appId}/api/${normalizedPath}`;
 };
@@ -235,8 +232,16 @@ const forwardProxyRequest = async ({ request, url, headers }) => {
   if (!["GET", "HEAD"].includes(request.method.toUpperCase())) {
     init.body = request.body;
   }
-
-  return fetch(url, init);
+  console.log("[WORKER][proxy] Forwarding request", {
+    url,
+    method: request.method,
+  });
+  const response = await fetch(url, init);
+  console.log("[WORKER][proxy] Upstream response", {
+    url,
+    status: response.status,
+  });
+  return response;
 };
 
 const handleAuthRefresh = async (request, env, config) => {
@@ -262,6 +267,7 @@ const handleAuthRefresh = async (request, env, config) => {
   }
 
   const upstreamUrl = buildUpstreamUrl(apiOrigin, appId, "auth/refresh");
+  console.log("[WORKER][refresh] Upstream URL", upstreamUrl);
 
   try {
     const upstreamResponse = await forwardProxyRequest({
@@ -307,7 +313,9 @@ const handleOAuthCallback = async (request, env, config, url) => {
     buildUpstreamUrl(apiOrigin, appId, "oauth/callback")
   );
 
+  // Preserve code/state query params; allow caller override of appId for multi-app scenarios
   upstreamUrl.search = url.search;
+
   if (!upstreamUrl.searchParams.has("appId")) {
     upstreamUrl.searchParams.set("appId", appId);
   }
@@ -367,6 +375,7 @@ const handleAuthLogout = async (request, env, config) => {
       headers: upstreamHeaders,
     });
 
+    // Always expire local cookie regardless of upstream status
     return buildProxyResponse({
       upstreamResponse,
       cookieName,
@@ -400,28 +409,180 @@ const handleAuthLogout = async (request, env, config) => {
   }
 };
 
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
+/**
+ * Generic proxy handler for auth and oauth endpoints.
+ * Forwards requests to the upstream API and handles refresh token cookie management.
+ */
+const handleGenericProxy = async (request, env, config, url) => {
+  const { cookieName, cookiePath, cookieMaxAge, apiOrigin, appId } = config;
+  if (!apiOrigin || !appId || !cookieName) {
+    return new Response("Proxy not configured", { status: 500 });
+  }
 
+  // Extract the path suffix after /proxy/
+  // e.g., /proxy/auth/magic-link/verify → auth/magic-link/verify
+  const proxyPath = url.pathname.substring(PROXY_PREFIX.length + 1);
+
+  // Build upstream URL, preserving query params (critical for OAuth callback code/state)
+  const upstreamUrl = new URL(buildUpstreamUrl(apiOrigin, appId, proxyPath));
+  upstreamUrl.search = url.search;
+
+  // Forward relevant headers
+  const upstreamHeaders = new Headers();
+  const forwardHeaders = ["content-type", "accept", "cookie", "authorization"];
+  for (const [key, value] of request.headers) {
+    if (forwardHeaders.includes(key.toLowerCase())) {
+      upstreamHeaders.set(key, value);
+    }
+  }
+
+  // Ensure we have Accept header for JSON responses
+  if (!upstreamHeaders.has("Accept")) {
+    upstreamHeaders.set("Accept", "application/json");
+  }
+
+  // For POST requests without Content-Type, default to JSON
+  if (request.method === "POST" && !upstreamHeaders.has("Content-Type")) {
+    upstreamHeaders.set("Content-Type", "application/json");
+  }
+
+  // If we have a refresh cookie, ensure it's forwarded
+  const cookies = parseCookies(request.headers.get("Cookie"));
+  const refreshCookieValue = cookies[cookieName] || null;
+  if (refreshCookieValue && !upstreamHeaders.has("Cookie")) {
+    upstreamHeaders.set("Cookie", `${cookieName}=${refreshCookieValue}`);
+  }
+
+  console.log("[WORKER][generic-proxy] Forwarding request", {
+    proxyPath,
+    upstreamUrl: upstreamUrl.toString(),
+    method: request.method,
+  });
+
+  try {
+    const upstreamResponse = await forwardProxyRequest({
+      request,
+      url: upstreamUrl.toString(),
+      headers: upstreamHeaders,
+    });
+
+    // Determine if this is a logout request (should expire cookie)
+    const isLogout = proxyPath.includes("logout");
+
+    return buildProxyResponse({
+      upstreamResponse,
+      cookieName,
+      cookiePath,
+      cookieMaxAge,
+      shouldExpire: isLogout,
+      request,
+    });
+  } catch (error) {
+    console.error("[WORKER][generic-proxy] upstream error", error);
+    return new Response("Upstream error", { status: 502 });
+  }
+};
+
+export default {
+  async fetch(request, env, ctx) {
+    console.log("[WORKER] Worker started, request:", request.url);
+    console.log(
+      "[WORKER] Headers:",
+      Object.fromEntries(request.headers.entries())
+    );
+
+    const url = new URL(request.url);
     if (url.pathname.startsWith(PROXY_PREFIX)) {
       const config = getProxyConfig(env);
+      console.log("[WORKER] Proxy request detected", {
+        pathname: url.pathname,
+        configAppId: config.appId,
+        apiOrigin: config.apiOrigin,
+      });
 
-      if (url.pathname === REFRESH_PATH) {
-        return handleAuthRefresh(request, env, config);
-      }
+      // Check if request matches allowed proxy prefixes
+      const isAuthRoute = url.pathname.startsWith(PROXY_AUTH_PREFIX);
+      const isOAuthRoute = url.pathname.startsWith(PROXY_OAUTH_PREFIX);
 
-      if (url.pathname === LOGOUT_PATH) {
-        return handleAuthLogout(request, env, config);
-      }
-
-      if (url.pathname === OAUTH_CALLBACK_PATH) {
-        return handleOAuthCallback(request, env, config, url);
+      if (isAuthRoute || isOAuthRoute) {
+        // Use generic proxy handler for all auth/* and oauth/* routes
+        return handleGenericProxy(request, env, config, url);
       }
 
       return new Response("Not Found", { status: 404 });
     }
 
-    return env.ASSETS.fetch(request);
+    // Test endpoint to verify worker is working
+    if (url.pathname === "/worker-test") {
+      return new Response(
+        JSON.stringify({
+          message: "Worker is working!",
+          env_vars: getEnvAvailability(env),
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Test HTML injection endpoint
+    if (url.pathname === "/html-test") {
+      const testHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>Test HTML</h1>
+</body>
+</html>`;
+
+      return new Response(testHtml, {
+        headers: { "Content-Type": "text/html" },
+      });
+    }
+
+    // Handle API routes
+    if (url.pathname.startsWith("/api/")) {
+      if (url.pathname === "/api/version") {
+        let meta = {
+          version: env.BUILD_VERSION || "",
+          commit: env.BUILD_COMMIT || "",
+          time: env.BUILD_TIME || "",
+        };
+        try {
+          if (!meta.version || !meta.commit) {
+            const assetReq = new Request(new URL("/version.json", url.origin), {
+              headers: { "cache-control": "no-store" },
+            });
+            const assetRes = await env.ASSETS.fetch(assetReq);
+            if (assetRes.ok) {
+              meta = await assetRes.json();
+            }
+          }
+        } catch {}
+        return new Response(JSON.stringify(meta), {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+          },
+        });
+      }
+      return new Response("API endpoint", { status: 200 });
+    }
+
+    // Get the response from Assets
+    const response = await env.ASSETS.fetch(request);
+    console.log(
+      "[WORKER] Got response from ASSETS:",
+      response.status,
+      response.headers.get("content-type")
+    );
+    console.log(
+      "[WORKER] Response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
+
+    return response;
   },
 };
