@@ -7,9 +7,7 @@
 # passed to the worker at deploy time via --var flags. This keeps all app
 # config in .env files for consistency between development and production.
 #
-# Environments:
-#   pnpm deploy --env test        -> uses .env.test, deploys to test worker
-#   pnpm deploy --env production  -> uses .env.production, deploys to prod worker
+# To deploy: pnpm deploy --env production
 # =============================================================================
 
 name = "YOUR APP NAME HERE"
@@ -20,26 +18,6 @@ compatibility_date = "2025-06-12"
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-
-# =============================================================================
-# TEST ENVIRONMENT
-# =============================================================================
-# Deploy with: pnpm deploy --env test
-# Config from: .env.test
-# =============================================================================
-[env.test]
-name = "YOUR APP NAME HERE-test"
-
-# By default, deploys to: YOUR APP NAME HERE-test.<your-subdomain>.workers.dev
-# Uncomment below to use a custom domain instead:
-# [[env.test.routes]]
-# pattern = "test.your-domain.com"
-# custom_domain = true
-
-[env.test.vars]
-# Auth proxy cookie settings (worker-specific)
-REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
-REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 
 # =============================================================================
 # PRODUCTION ENVIRONMENT
@@ -63,3 +41,19 @@ REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 
 # Note: APP_ID and API_ORIGIN are read from .env.production by the deploy script
 # and passed to wrangler via --var flags. Do not duplicate them here.
+
+# =============================================================================
+# ADDITIONAL ENVIRONMENTS
+# =============================================================================
+# To add a test environment:
+#
+# 1. Add a section here:
+#    [env.test]
+#    name = "YOUR APP NAME HERE-test"
+#    [env.test.vars]
+#    REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
+#    REFRESH_PROXY_COOKIE_PATH = "/proxy/"
+#
+# 2. Create .env.test with your test configuration
+#
+# 3. Deploy with: pnpm deploy --env test

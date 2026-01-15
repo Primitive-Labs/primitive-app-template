@@ -124,37 +124,27 @@ pnpm deploy --env production
 
 The deploy script reads `.env.production`, builds the project, and deploys to Cloudflare Workers.
 
-## Multiple Environments
+## Adding More Environments
 
-You can configure additional environments (e.g., test, staging) by adding sections to `wrangler.toml` and creating corresponding `.env` files.
+You can add additional environments (e.g., test, staging) by:
 
-### Setting up a test environment
-
-1. **Add to wrangler.toml** (already included in template):
+1. **Adding a section to wrangler.toml:**
 
 ```toml
 [env.test]
 name = "my-app-test"
+
+[env.test.vars]
+REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
+REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 ```
 
-2. **Create .env.test** (already included in template):
+2. **Creating a corresponding .env file** (e.g., `.env.test`)
 
-```bash
-VITE_APP_ID=your_test_app_id
-VITE_OAUTH_REDIRECT_URI=https://my-app-test.your-subdomain.workers.dev/oauth/callback
-VITE_LOG_LEVEL="debug"
-```
-
-3. **Deploy to test**:
+3. **Deploying:**
 
 ```bash
 pnpm deploy --env test
 ```
 
-### Environment summary
-
-| Environment | Config File | Deploy Command | Worker Name |
-|-------------|-------------|----------------|-------------|
-| Development | `.env` | `pnpm dev` | (local) |
-| Test | `.env.test` | `pnpm deploy --env test` | `my-app-test` |
-| Production | `.env.production` | `pnpm deploy --env production` | `my-app-prod` |
+The deploy script reads from `.env.{environment}` and uses `[env.{environment}]` from wrangler.toml.
