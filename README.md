@@ -87,12 +87,18 @@ This project deploys to Cloudflare Workers. The configuration pattern is consist
 
 ### 2. Configure wrangler.toml
 
-Edit `wrangler.toml` to set your worker name and domain:
+Edit `wrangler.toml` to set your worker name:
 
 ```toml
-[env.production]
-name = "your-app-name-prod"
+name = "my-app"
 
+[env.production]
+name = "my-app-prod"
+```
+
+By default, your app will be deployed to a `*.workers.dev` URL. To use a custom domain, uncomment and edit the routes section:
+
+```toml
 [[env.production.routes]]
 pattern = "your-domain.com"
 custom_domain = true
@@ -100,28 +106,55 @@ custom_domain = true
 
 ### 3. Configure .env.production
 
-Edit `.env.production` with your production settings. This file follows the same format as `.env`:
+Edit `.env.production` with your production settings:
 
 ```bash
 # Your Primitive App ID (can be the same as development or a separate production app)
 VITE_APP_ID=your_production_app_id
 
 # OAuth redirect URI for your production domain
-VITE_OAUTH_REDIRECT_URI=https://your-domain.com/oauth/callback
+VITE_OAUTH_REDIRECT_URI=https://my-app-prod.your-subdomain.workers.dev/oauth/callback
 ```
 
 ### 4. Deploy
-
-The `deploy` script handles everything: reads `.env.production`, builds the project, and deploys to Cloudflare Workers:
 
 ```bash
 pnpm deploy --env production
 ```
 
-The script automatically passes `APP_ID` and `API_ORIGIN` to the worker from your `.env.production` file.
+The deploy script reads `.env.production`, builds the project, and deploys to Cloudflare Workers.
 
-Any additional options are passed through to `wrangler deploy`. For example:
+## Multiple Environments
+
+You can configure additional environments (e.g., test, staging) by adding sections to `wrangler.toml` and creating corresponding `.env` files.
+
+### Setting up a test environment
+
+1. **Add to wrangler.toml** (already included in template):
+
+```toml
+[env.test]
+name = "my-app-test"
+```
+
+2. **Create .env.test** (already included in template):
 
 ```bash
-pnpm deploy --env production --dry-run
+VITE_APP_ID=your_test_app_id
+VITE_OAUTH_REDIRECT_URI=https://my-app-test.your-subdomain.workers.dev/oauth/callback
+VITE_LOG_LEVEL="debug"
 ```
+
+3. **Deploy to test**:
+
+```bash
+pnpm deploy --env test
+```
+
+### Environment summary
+
+| Environment | Config File | Deploy Command | Worker Name |
+|-------------|-------------|----------------|-------------|
+| Development | `.env` | `pnpm dev` | (local) |
+| Test | `.env.test` | `pnpm deploy --env test` | `my-app-test` |
+| Production | `.env.production` | `pnpm deploy --env production` | `my-app-prod` |

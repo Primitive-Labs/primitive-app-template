@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 /**
- * Deploy script that reads configuration from .env.production,
+ * Deploy script that reads configuration from environment-specific .env files,
  * builds the project, and deploys to Cloudflare Workers.
  *
- * Usage: pnpm deploy [--env <environment>] [other wrangler options...]
+ * Usage: pnpm deploy --env <environment> [other wrangler options...]
+ *
+ * Examples:
+ *   pnpm deploy --env test        -> reads .env.test, deploys to test worker
+ *   pnpm deploy --env production  -> reads .env.production, deploys to prod worker
  *
  * This script:
- * 1. Reads configuration from .env.production (the source of truth)
- * 2. Runs the production build (Vite reads .env.production automatically)
+ * 1. Reads configuration from .env.{environment} (the source of truth)
+ * 2. Runs the production build with the appropriate env file
  * 3. Deploys using wrangler, passing APP_ID and API_ORIGIN as --var flags
  */
 
@@ -24,7 +28,7 @@ const ROOT_DIR = path.resolve(__dirname, "..");
  */
 function parseEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {
-    return {};
+    return null;
   }
 
   const content = fs.readFileSync(filePath, "utf-8");
@@ -56,13 +60,33 @@ function parseEnvFile(filePath) {
 }
 
 /**
- * Mapping from .env.production vars to wrangler --var names
+ * Mapping from .env vars to wrangler --var names
  * These are the vars the worker needs at runtime
  */
 const ENV_TO_WRANGLER_VARS = {
   VITE_APP_ID: "APP_ID",
   VITE_API_URL: "API_ORIGIN",
 };
+
+/**
+ * Parse command line arguments to extract the environment name
+ */
+function parseArgs(args) {
+  let env = null;
+  const wranglerArgs = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--env" && args[i + 1]) {
+      env = args[i + 1];
+      wranglerArgs.push(args[i], args[i + 1]);
+      i++; // skip the value
+    } else {
+      wranglerArgs.push(args[i]);
+    }
+  }
+
+  return { env, wranglerArgs };
+}
 
 /**
  * Run a command and return a promise
@@ -91,20 +115,38 @@ function runCommand(command, args, options = {}) {
 
 async function main() {
   const args = process.argv.slice(2);
+  const { env, wranglerArgs } = parseArgs(args);
 
-  // Read .env.production
-  const envFilePath = path.join(ROOT_DIR, ".env.production");
-  if (!fs.existsSync(envFilePath)) {
-    console.error("[deploy] Error: .env.production not found");
-    console.error(
-      "[deploy] Please create .env.production with your production configuration"
-    );
+  if (!env) {
+    console.error("[deploy] Error: --env flag is required");
+    console.error("[deploy] Usage: pnpm deploy --env <environment>");
+    console.error("[deploy] Examples:");
+    console.error("[deploy]   pnpm deploy --env test");
+    console.error("[deploy]   pnpm deploy --env production");
     process.exit(1);
   }
 
+  // Determine which .env file to use
+  const envFileName = `.env.${env}`;
+  const envFilePath = path.join(ROOT_DIR, envFileName);
+
+  console.log(`[deploy] Environment: ${env}`);
+  console.log(`[deploy] Config file: ${envFileName}`);
+
+  // Read the environment-specific .env file
   const envVars = parseEnvFile(envFilePath);
 
-  console.log("[deploy] Configuration from .env.production:");
+  if (!envVars) {
+    console.error(`[deploy] Error: ${envFileName} not found`);
+    console.error(
+      `[deploy] Please create ${envFileName} with your ${env} configuration`
+    );
+    console.error(`[deploy] You can copy .env.production as a starting point:`);
+    console.error(`[deploy]   cp .env.production ${envFileName}`);
+    process.exit(1);
+  }
+
+  console.log(`\n[deploy] Configuration from ${envFileName}:`);
   for (const [key, value] of Object.entries(envVars)) {
     // Mask sensitive values and truncate long ones
     const displayValue =
@@ -118,23 +160,25 @@ async function main() {
 
   // Validate required vars
   if (!envVars.VITE_APP_ID || envVars.VITE_APP_ID === "YOUR_APP_ID_GOES_HERE") {
-    console.error("\n[deploy] Error: VITE_APP_ID is not set in .env.production");
+    console.error(`\n[deploy] Error: VITE_APP_ID is not set in ${envFileName}`);
     console.error(
       "[deploy] Please set your Primitive App ID from the admin console"
     );
     process.exit(1);
   }
 
-  // Run build (Vite automatically reads .env.production for production builds)
-  console.log("\n[deploy] Building for production...");
+  // Run build with the appropriate mode
+  // Vite uses --mode to determine which .env file to load
+  // --mode production loads .env.production, --mode test loads .env.test, etc.
+  console.log(`\n[deploy] Building for ${env}...`);
   try {
-    await runCommand("pnpm", ["build"]);
+    await runCommand("pnpm", ["build-only", "--mode", env]);
   } catch (error) {
     console.error("[deploy] Build failed:", error.message);
     process.exit(1);
   }
 
-  // Build wrangler --var flags from .env.production
+  // Build wrangler --var flags from .env file
   const varFlags = [];
   for (const [envKey, wranglerKey] of Object.entries(ENV_TO_WRANGLER_VARS)) {
     if (envVars[envKey]) {
@@ -144,7 +188,10 @@ async function main() {
 
   // Deploy with wrangler
   console.log("\n[deploy] Deploying to Cloudflare Workers...");
-  console.log("[deploy] Passing vars to worker:", Object.keys(ENV_TO_WRANGLER_VARS).map(k => ENV_TO_WRANGLER_VARS[k]).join(", "));
+  console.log(
+    "[deploy] Passing vars to worker:",
+    Object.values(ENV_TO_WRANGLER_VARS).join(", ")
+  );
 
   try {
     await runCommand("pnpm", [
@@ -152,7 +199,7 @@ async function main() {
       "wrangler",
       "deploy",
       ...varFlags,
-      ...args,
+      ...wranglerArgs,
     ]);
   } catch (error) {
     console.error("[deploy] Deploy failed:", error.message);

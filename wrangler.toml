@@ -3,11 +3,13 @@
 # =============================================================================
 # Worker and deployment configuration for Cloudflare Workers.
 #
-# App configuration (APP_ID, API_ORIGIN) comes from .env.production and is
+# App configuration (APP_ID, API_ORIGIN) comes from .env files and is
 # passed to the worker at deploy time via --var flags. This keeps all app
 # config in .env files for consistency between development and production.
 #
-# To deploy: pnpm deploy --env production
+# Environments:
+#   pnpm deploy --env test        -> uses .env.test, deploys to test worker
+#   pnpm deploy --env production  -> uses .env.production, deploys to prod worker
 # =============================================================================
 
 name = "YOUR APP NAME HERE"
@@ -20,18 +22,42 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 # =============================================================================
+# TEST ENVIRONMENT
+# =============================================================================
+# Deploy with: pnpm deploy --env test
+# Config from: .env.test
+# =============================================================================
+[env.test]
+name = "YOUR APP NAME HERE-test"
+
+# By default, deploys to: YOUR APP NAME HERE-test.<your-subdomain>.workers.dev
+# Uncomment below to use a custom domain instead:
+# [[env.test.routes]]
+# pattern = "test.your-domain.com"
+# custom_domain = true
+
+[env.test.vars]
+# Auth proxy cookie settings (worker-specific)
+REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
+REFRESH_PROXY_COOKIE_PATH = "/proxy/"
+
+# =============================================================================
 # PRODUCTION ENVIRONMENT
+# =============================================================================
+# Deploy with: pnpm deploy --env production
+# Config from: .env.production
 # =============================================================================
 [env.production]
 name = "YOUR APP NAME HERE-prod"
 
-# Attach a custom domain so the Worker is the origin for this host.
-[[env.production.routes]]
-pattern = "YOUR URL NAME"   # <-- entire host goes to this Worker
-custom_domain = true
+# By default, deploys to: YOUR APP NAME HERE-prod.<your-subdomain>.workers.dev
+# Uncomment below to use a custom domain instead:
+# [[env.production.routes]]
+# pattern = "your-domain.com"
+# custom_domain = true
 
 [env.production.vars]
-# Auth proxy cookie settings (worker-specific, not needed in .env.production)
+# Auth proxy cookie settings (worker-specific)
 REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
 REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 
