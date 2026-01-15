@@ -18,18 +18,17 @@
 
 ## General Coding Guidelines
 
-- Fail early. Prefer failing early and loudly rather than masking errors that will cause problems downstream.
-- Prefer strong typing and invariants over scattered defensive code.
-- Don't mask missing required inputs with inline fallbacks.
-- Try to keep components and source files under 500 LOC. Break into components if files get large.
-- Before completing a task review your work against the DRY principle. Scan for code that might be duplicative. Refactor if there is a way to simplify or re-use code.
-- Prefer to delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, ask the user how to handle it. Don't assume.
-- Dev server is already running on http://localhost:5173. NEVER launch it yourself
-- js-bao is a client side library. All data syncing with the server is handled in the background. There is no place to write server code.
+- ALWAYS Fail early. Don't mask missing required inputs with inline fallbacks or try to recover from errors caused by improper usage or bad input. Expose the errors directly.
+- ALWAYS use strong typing and invariants over scattered defensive code.
+- PREFER keeping components and source files under 500 LOC. ALWAYS refactor code into components if files get large.
+- After completing a task, ALWAYS do a final review code review of your work. Automatically refactor if there is a way to delete dead code, simplify, or reduce duplicative code.
+- ALWAYS delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, CONFIRM with the user how to handle it. Don't assume.
+- js-bao is a client side library. All data syncing with the server is handled in the background. NEVER try to write server code.
 - ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. Pass in the current log level with an explicit "level: getLogLevel()". NEVER use the primitiveAppBaseLogger.
-- ONLY add meaningful comments that explain why something is done, not what it does
+- ALWAYS add meaningful comments that explain WHY something is done, NEVER add comments that just explain what code does, or code changes from a prior version.
 - ALWAYS organize functions in code files in a logical order (e.g. "initialze" functions at the top of the file, a logical sequence or grouping, etc.). Add comments to break up sections of related functions.
 - ALWAYS run pnpm build after making changes and fix any errors.
+- NEVER modify worker.js. This is a library provided file and should not be edited.
 
 ## Vue Code Guidelines
 
@@ -47,17 +46,15 @@
 
 ## Using Primitive-app
 
-- Primitive-app provides configuration based support for common usage patterns. In general start by modifing config data to accomplish your goals. Refer to @./src/node_modules/primitive-app/README.md for reference documentation on how to use this library.
-- If configuration options aren't available, you can customize primitive-app by creating new layouts and new components.
-- Refer to documentation for primitive-app in the README and /docs directory in the installed primitive-app in node_modules.
-- Primitive-app includes a browser based test harness which is the best way to write application level tests that use js-bao. If you've created a new lib file or function, you should add tests to the test harness to make sure that business logic is working properly.
+- Primitive-app provides configuration based support for common usage patterns and wireup of js-bao and js-bao-wss-client. In general start by modifying config data to accomplish your goals. Refer to the Primitive Docs at https://primitive-labs.github.io/primitive-docs/ for guides on how to model data and documents and use the js-bao-wss-client APIs.
+- If configuration options aren't available to accomplish the user's request, you can add new layouts and new components.
 
 ### Data Storage and Loading
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend (auth, API calls, opening/closing js-bao documents, storing blobs, etc.).
 - ALWAYS refer to @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for instructions on how to create js-bao models and use the js-bao-wss-client.
 - ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
-- NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, just do that in the loadData function.
+- NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, do that processing in loadData.
 - NEVER rely on the component remounting when route params change; the loader only sees changes via queryParams, so make sure to update this object to trigger a reload.
 - PREFER filtering for needed data using js-bao .query() rather than querying all objects and filtering in Javascript. If those queryParams can be changed by application state, pass those to the jsBaoDataLoader via queryParams.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
@@ -81,20 +78,25 @@
 
 ## UI/UX Guidelines
 
+## Responsive Design
+
+- Unless specifically directed otherwise, ALWAYS think about building UI that's responsive to desktop, tablet, and mobile phone sized screens.
+- If you write UI components that utilize desktop UX patterns (like Dialogs) ALWAYS provide a phone pattern (like a Sheet) that is used on smaller screens.
+
 ### CSS & Component Library
 
-- ALWAYS try to use shadcn-vue components without modification if possible.
+- ALWAYS use shadcn-vue components without modification if possible.
 - ALWAYS install needed shadcn-vue components if they are not available in the current project, ONLY using the command line installation tool.
 - NEVER build components from scratch. If a default shadcn-vue component does not meet the project needs, create new components by composing shadcn-vue components.
-- ALWAYS use TailwindCSS classes rather than manual CSS
-- NEVER hard code colors, use Tailwind's color system
+- ALWAYS use TailwindCSS classes rather than manual CSS.
+- NEVER hard code colors, use Tailwind's color system.
 
 ### Writing Components
 
 - ALWAYS use PrimitiveSkeletonGate to show skeletons until jsBaoDataLoader sets initialDataLoaded.
 - It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
-- AVOID complex business logic in Vue components. Components should be focused on rendering and UI interaction - move more complex data manipulation and business logic to a related /lib file.
-- ALWAYS make customizations at the layout level, not at the App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
+- AVOID writing business logic in Vue components. Components should be focused on rendering and UI interaction - move data manipulation and business logic to a related /lib file so it can be tested.
+- ALWAYS make customizations at the layout level, not in App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
 
 ### PrimitiveSkeletonGate Pattern
 
@@ -103,4 +105,4 @@
 
 ## Writing Tests
 
-- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib files/functions. For every new lib file/function think about writing tests that cover key cases. Refer to the primitive-app @./node_modules/README.md for examples.
+- ALWAYS use the primitive-app test harness to write browser based tests for business logic in lib files/functions. For EVERY new lib file/function you create or update write tests that cover key cases. Refer to the Primitive Docs at https://primitive-labs.github.io/primitive-docs/ for examples.
