@@ -78,18 +78,16 @@ Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and na
 
 ## Deploying to Production
 
+This project deploys to Cloudflare Workers. The configuration pattern is consistent with development: edit `.env` files for app settings.
+
 ### 1. Prerequisites
 
-- **Cloudflare account** with access to deploy Workers.
-- **Wrangler CLI** installed in your project. Follow the official [Wrangler installation guide](https://developers.cloudflare.com/workers/wrangler/install-and-update/) and install it as a dev dependency using pnpm:
+- **Cloudflare account** with access to deploy Workers
+- **Wrangler CLI** - already included as a dev dependency
 
-```bash
-pnpm add -D wrangler@latest
-```
+### 2. Configure wrangler.toml
 
-### 2. Configure Production Environment
-
-Edit `wrangler.toml` with your production settings. This file is the **source of truth** for production configuration:
+Edit `wrangler.toml` to set your worker name and domain:
 
 ```toml
 [env.production]
@@ -98,20 +96,29 @@ name = "your-app-name-prod"
 [[env.production.routes]]
 pattern = "your-domain.com"
 custom_domain = true
-
-[env.production.vars]
-APP_ID = "YOUR_PRODUCTION_APP_ID"
 ```
 
-The `APP_ID` should match the App ID you created in the Primitive Admin console (this can be the same App ID you use for development, or a different one created specifically for production).
+### 3. Configure .env.production
 
-### 3. Deploy
+Edit `.env.production` with your production settings. This file follows the same format as `.env`:
 
-The `deploy` script handles everything: it syncs configuration from `wrangler.toml` to `.env.production`, builds the project, and deploys to Cloudflare Workers:
+```bash
+# Your Primitive App ID (can be the same as development or a separate production app)
+VITE_APP_ID=your_production_app_id
+
+# OAuth redirect URI for your production domain
+VITE_OAUTH_REDIRECT_URI=https://your-domain.com/oauth/callback
+```
+
+### 4. Deploy
+
+The `deploy` script handles everything: reads `.env.production`, builds the project, and deploys to Cloudflare Workers:
 
 ```bash
 pnpm deploy --env production
 ```
+
+The script automatically passes `APP_ID` and `API_ORIGIN` to the worker from your `.env.production` file.
 
 Any additional options are passed through to `wrangler deploy`. For example:
 

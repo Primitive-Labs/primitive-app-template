@@ -1,9 +1,13 @@
 # =============================================================================
 # WRANGLER CONFIGURATION
 # =============================================================================
-# This file is the source of truth for production configuration.
-# Run `pnpm deploy --env production` to sync these values to .env.production,
-# build, and deploy to Cloudflare Workers.
+# Worker and deployment configuration for Cloudflare Workers.
+#
+# App configuration (APP_ID, API_ORIGIN) comes from .env.production and is
+# passed to the worker at deploy time via --var flags. This keeps all app
+# config in .env files for consistency between development and production.
+#
+# To deploy: pnpm deploy --env production
 # =============================================================================
 
 name = "YOUR APP NAME HERE"
@@ -27,13 +31,9 @@ pattern = "YOUR URL NAME"   # <-- entire host goes to this Worker
 custom_domain = true
 
 [env.production.vars]
-# Your Primitive App ID from the admin console (https://admin.primitiveapi.com)
-# This value is synced to VITE_APP_ID in .env.production when you run `pnpm deploy`
-APP_ID = "YOUR_PRODUCTION_APP_ID"
-
-# Primitive API server (synced to VITE_API_URL)
-API_ORIGIN = "https://primitiveapi.com/"
-
-# Auth proxy cookie settings
+# Auth proxy cookie settings (worker-specific, not needed in .env.production)
 REFRESH_PROXY_COOKIE_MAX_AGE = "604800"
 REFRESH_PROXY_COOKIE_PATH = "/proxy/"
+
+# Note: APP_ID and API_ORIGIN are read from .env.production by the deploy script
+# and passed to wrangler via --var flags. Do not duplicate them here.

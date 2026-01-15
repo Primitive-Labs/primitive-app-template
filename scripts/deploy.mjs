@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 /**
- * Deploy script that synchronizes configuration from wrangler.toml to .env files,
+ * Deploy script that reads configuration from .env.production,
  * builds the project, and deploys to Cloudflare Workers.
  *
  * Usage: pnpm deploy [--env <environment>] [other wrangler options...]
  *
  * This script:
- * 1. Reads configuration from wrangler.toml for the specified environment
- * 2. Generates/updates .env.production with VITE_* variables
- * 3. Runs the production build
- * 4. Deploys using wrangler with all passed options
+ * 1. Reads configuration from .env.production (the source of truth)
+ * 2. Runs the production build (Vite reads .env.production automatically)
+ * 3. Deploys using wrangler, passing APP_ID and API_ORIGIN as --var flags
  */
 
-import { execSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,69 +20,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 
 /**
- * Simple TOML parser for wrangler.toml structure.
- * Handles the specific patterns we need: sections, env sections, and vars.
+ * Parse a .env file into an object
  */
-function parseWranglerToml(content) {
-  const result = {
-    vars: {},
-    envs: {},
-  };
+function parseEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
 
-  let currentSection = null;
-  let currentEnv = null;
-  let currentSubSection = null;
+  const content = fs.readFileSync(filePath, "utf-8");
+  const vars = {};
 
-  const lines = content.split("\n");
-
-  for (const line of lines) {
+  for (const line of content.split("\n")) {
     const trimmed = line.trim();
 
     // Skip comments and empty lines
     if (trimmed.startsWith("#") || trimmed === "") continue;
 
-    // Check for section headers
-    const sectionMatch = trimmed.match(/^\[([^\]]+)\]$/);
-    if (sectionMatch) {
-      const sectionPath = sectionMatch[1];
+    const match = trimmed.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+    if (match) {
+      let value = match[2];
 
-      // Check if it's an env-specific section
-      const envMatch = sectionPath.match(/^env\.([^.]+)(?:\.(.+))?$/);
-      if (envMatch) {
-        currentEnv = envMatch[1];
-        currentSubSection = envMatch[2] || null;
-
-        if (!result.envs[currentEnv]) {
-          result.envs[currentEnv] = { vars: {} };
-        }
-      } else {
-        currentEnv = null;
-        currentSubSection = sectionPath;
-      }
-      continue;
-    }
-
-    // Check for double-bracket sections (arrays like [[env.production.routes]])
-    const arraySectionMatch = trimmed.match(/^\[\[([^\]]+)\]\]$/);
-    if (arraySectionMatch) {
-      const sectionPath = arraySectionMatch[1];
-      const envMatch = sectionPath.match(/^env\.([^.]+)/);
-      if (envMatch) {
-        currentEnv = envMatch[1];
-        if (!result.envs[currentEnv]) {
-          result.envs[currentEnv] = { vars: {} };
-        }
-      }
-      continue;
-    }
-
-    // Parse key-value pairs
-    const kvMatch = trimmed.match(/^([^=]+?)\s*=\s*(.+)$/);
-    if (kvMatch) {
-      const key = kvMatch[1].trim();
-      let value = kvMatch[2].trim();
-
-      // Remove quotes from string values
+      // Remove surrounding quotes if present
       if (
         (value.startsWith('"') && value.endsWith('"')) ||
         (value.startsWith("'") && value.endsWith("'"))
@@ -91,116 +48,21 @@ function parseWranglerToml(content) {
         value = value.slice(1, -1);
       }
 
-      // Store in the appropriate location
-      if (currentEnv && currentSubSection === "vars") {
-        result.envs[currentEnv].vars[key] = value;
-      } else if (currentEnv && !currentSubSection) {
-        // Top-level env property (like name)
-        result.envs[currentEnv][key] = value;
-      } else if (currentSubSection === "vars" && !currentEnv) {
-        // Global vars section
-        result.vars[key] = value;
-      } else if (!currentSubSection && !currentEnv) {
-        // Top-level property
-        result[key] = value;
-      }
+      vars[match[1]] = value;
     }
   }
 
-  return result;
+  return vars;
 }
 
 /**
- * Maps wrangler.toml variable names to VITE_* environment variable names.
+ * Mapping from .env.production vars to wrangler --var names
+ * These are the vars the worker needs at runtime
  */
-const VAR_MAPPINGS = {
-  APP_ID: "VITE_APP_ID",
-  API_ORIGIN: "VITE_API_URL",
+const ENV_TO_WRANGLER_VARS = {
+  VITE_APP_ID: "APP_ID",
+  VITE_API_URL: "API_ORIGIN",
 };
-
-/**
- * Default values for VITE environment variables that aren't derived from wrangler.toml
- */
-const ENV_DEFAULTS = {
-  VITE_API_URL: "https://primitiveapi.com",
-  VITE_WS_URL: "wss://primitiveapi.com",
-  VITE_ENABLE_AUTH_PROXY: '"true"',
-  VITE_LOG_LEVEL: '"warn"',
-};
-
-/**
- * Generates .env.production content from wrangler config and existing .env.production
- */
-function generateEnvContent(wranglerVars, existingEnvPath) {
-  // Read existing .env.production if it exists to preserve comments and order
-  let existingContent = "";
-  let existingVars = {};
-
-  if (fs.existsSync(existingEnvPath)) {
-    existingContent = fs.readFileSync(existingEnvPath, "utf-8");
-    // Parse existing vars
-    for (const line of existingContent.split("\n")) {
-      const match = line.match(/^([A-Z_]+)=(.*)$/);
-      if (match) {
-        existingVars[match[1]] = match[2];
-      }
-    }
-  }
-
-  // Build the new vars object, starting with defaults
-  const newVars = { ...ENV_DEFAULTS, ...existingVars };
-
-  // Apply mappings from wrangler.toml
-  for (const [wranglerKey, viteKey] of Object.entries(VAR_MAPPINGS)) {
-    if (wranglerVars[wranglerKey]) {
-      newVars[viteKey] = wranglerVars[wranglerKey];
-    }
-  }
-
-  // Generate the .env.production content
-  const lines = [
-    "# Auto-generated from wrangler.toml by deploy script",
-    "# Edit wrangler.toml to change APP_ID and API_ORIGIN, then run pnpm deploy",
-    "",
-    "# Your Primitive APP ID (synced from wrangler.toml)",
-    `VITE_APP_ID=${newVars.VITE_APP_ID || "YOUR_APP_ID_GOES_HERE"}`,
-    "",
-    "# Primitive API servers",
-    `VITE_API_URL=${newVars.VITE_API_URL}`,
-    `VITE_WS_URL=${newVars.VITE_WS_URL}`,
-    "",
-    "# OAuth Redirect URI - update this to match your production domain",
-    `VITE_OAUTH_REDIRECT_URI=${newVars.VITE_OAUTH_REDIRECT_URI || "https://[YOUR PRODUCTION URL]/oauth/callback"}`,
-    "",
-    "# Auth proxy settings for production",
-    `VITE_ENABLE_AUTH_PROXY=${newVars.VITE_ENABLE_AUTH_PROXY}`,
-    "",
-    "# Log level for production",
-    `VITE_LOG_LEVEL=${newVars.VITE_LOG_LEVEL}`,
-  ];
-
-  return lines.join("\n") + "\n";
-}
-
-/**
- * Parse command line arguments to extract the environment name
- */
-function parseArgs(args) {
-  let env = "production"; // default
-  const wranglerArgs = [];
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--env" && args[i + 1]) {
-      env = args[i + 1];
-      wranglerArgs.push(args[i], args[i + 1]);
-      i++; // skip the value
-    } else {
-      wranglerArgs.push(args[i]);
-    }
-  }
-
-  return { env, wranglerArgs };
-}
 
 /**
  * Run a command and return a promise
@@ -229,52 +91,41 @@ function runCommand(command, args, options = {}) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const { env, wranglerArgs } = parseArgs(args);
 
-  console.log(`[deploy] Deploying to environment: ${env}`);
-
-  // Read and parse wrangler.toml
-  const wranglerPath = path.join(ROOT_DIR, "wrangler.toml");
-  if (!fs.existsSync(wranglerPath)) {
-    console.error("[deploy] Error: wrangler.toml not found");
+  // Read .env.production
+  const envFilePath = path.join(ROOT_DIR, ".env.production");
+  if (!fs.existsSync(envFilePath)) {
+    console.error("[deploy] Error: .env.production not found");
+    console.error(
+      "[deploy] Please create .env.production with your production configuration"
+    );
     process.exit(1);
   }
 
-  const wranglerContent = fs.readFileSync(wranglerPath, "utf-8");
-  const wranglerConfig = parseWranglerToml(wranglerContent);
+  const envVars = parseEnvFile(envFilePath);
 
-  // Get vars for the specified environment
-  const envConfig = wranglerConfig.envs[env];
-  if (!envConfig) {
-    console.warn(
-      `[deploy] Warning: No configuration found for environment "${env}" in wrangler.toml`
-    );
-    console.warn("[deploy] Using global vars only");
-  }
-
-  const vars = {
-    ...wranglerConfig.vars,
-    ...(envConfig?.vars || {}),
-  };
-
-  console.log("[deploy] Configuration from wrangler.toml:");
-  for (const [key, value] of Object.entries(vars)) {
-    // Mask sensitive values
+  console.log("[deploy] Configuration from .env.production:");
+  for (const [key, value] of Object.entries(envVars)) {
+    // Mask sensitive values and truncate long ones
     const displayValue =
       key.includes("SECRET") || key.includes("KEY")
         ? "***"
-        : value.substring(0, 30) + (value.length > 30 ? "..." : "");
+        : value.length > 40
+          ? value.substring(0, 40) + "..."
+          : value;
     console.log(`  ${key}=${displayValue}`);
   }
 
-  // Generate .env.production
-  const envFilePath = path.join(ROOT_DIR, ".env.production");
-  const envContent = generateEnvContent(vars, envFilePath);
+  // Validate required vars
+  if (!envVars.VITE_APP_ID || envVars.VITE_APP_ID === "YOUR_APP_ID_GOES_HERE") {
+    console.error("\n[deploy] Error: VITE_APP_ID is not set in .env.production");
+    console.error(
+      "[deploy] Please set your Primitive App ID from the admin console"
+    );
+    process.exit(1);
+  }
 
-  console.log(`\n[deploy] Writing ${envFilePath}`);
-  fs.writeFileSync(envFilePath, envContent);
-
-  // Run build
+  // Run build (Vite automatically reads .env.production for production builds)
   console.log("\n[deploy] Building for production...");
   try {
     await runCommand("pnpm", ["build"]);
@@ -283,10 +134,26 @@ async function main() {
     process.exit(1);
   }
 
+  // Build wrangler --var flags from .env.production
+  const varFlags = [];
+  for (const [envKey, wranglerKey] of Object.entries(ENV_TO_WRANGLER_VARS)) {
+    if (envVars[envKey]) {
+      varFlags.push("--var", `${wranglerKey}:${envVars[envKey]}`);
+    }
+  }
+
   // Deploy with wrangler
   console.log("\n[deploy] Deploying to Cloudflare Workers...");
+  console.log("[deploy] Passing vars to worker:", Object.keys(ENV_TO_WRANGLER_VARS).map(k => ENV_TO_WRANGLER_VARS[k]).join(", "));
+
   try {
-    await runCommand("pnpm", ["dlx", "wrangler", "deploy", ...wranglerArgs]);
+    await runCommand("pnpm", [
+      "dlx",
+      "wrangler",
+      "deploy",
+      ...varFlags,
+      ...args,
+    ]);
   } catch (error) {
     console.error("[deploy] Deploy failed:", error.message);
     process.exit(1);
