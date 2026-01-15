@@ -18,7 +18,8 @@
     "lint": "eslint . --fix --cache",
     "format:check": "prettier --check src/",
     "format": "prettier --write src/",
-    "codegen": "npx js-bao-codegen"
+    "codegen": "npx js-bao-codegen",
+    "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
     "js-bao": "^0.2.9",

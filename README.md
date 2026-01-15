@@ -36,28 +36,15 @@ cd my-new-app
 pnpm install
 ```
 
-### 5. Configure Google OAuth Client
+### 5. Create a Primitive App
 
-Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/auth/clients) and configure a new OAuth client:
+Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and create a new app. Make note of your **App ID** for the next step.
 
-- **Authorized JavaScript origins**: By default, `http://localhost:5173`
-- **Authorized redirect URIs**: By default, `http://localhost:5173/oauth/callback`
+### 6. Configure Environment
 
-Make note of your **Client ID** and **Client Secret** for the next step.
+Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 5.
 
-### 6. Set Up js-bao App
-
-Go to the [js-bao admin page](https://admin.primitiveapi.com/login) and create a new app:
-
-- Add your **Google Client ID** and **Client Secret** from step 5
-- Add matching origin/callback URLs to match what you configured with Google
-- Make note of your **App ID** for the next step
-
-### 7. Configure Environment
-
-Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 6.
-
-### 8. Start Developing!
+### 7. Start Developing!
 
 You can start the dev server with
 
@@ -66,6 +53,28 @@ pnpm dev
 ```
 
 Visit `http://localhost:5173` to see your app running.
+
+## Setting Up Google Sign In
+
+Google OAuth is optional. If you want to enable Google as a sign-in option for your app, follow these steps:
+
+### 1. Configure Google OAuth Client
+
+Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/auth/clients) and configure a new OAuth client:
+
+- **Authorized JavaScript origins**: By default, `http://localhost:5173` (add your production domain as well)
+- **Authorized redirect URIs**: By default, `http://localhost:5173/oauth/callback` (add your production callback URL as well)
+
+Make note of your **Client ID** and **Client Secret**.
+
+### 2. Enable Google OAuth in Primitive Admin
+
+Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and navigate to your app's settings:
+
+1. Open the **Google OAuth** section
+2. Enable Google OAuth as a sign-in method
+3. Add your **Google Client ID** and **Client Secret** from step 1
+4. Add matching origin/callback URLs to match what you configured with Google
 
 ## Deploying to Production
 
@@ -80,37 +89,32 @@ pnpm add -D wrangler@latest
 
 ### 2. Configure Production Environment
 
-Update `.env.production` with your production `VITE_APP_ID`. This can be the same App ID you use for development or a different one created specifically for production:
-
-```bash
-VITE_APP_ID=YOUR_PRODUCTION_APP_ID
-```
-
-Then update `wrangler.toml` to ensure the production environment uses the same App ID:
+Edit `wrangler.toml` with your production settings. This file is the **source of truth** for production configuration:
 
 ```toml
+[env.production]
+name = "your-app-name-prod"
+
+[[env.production.routes]]
+pattern = "your-domain.com"
+custom_domain = true
+
 [env.production.vars]
 APP_ID = "YOUR_PRODUCTION_APP_ID"
 ```
 
-Make sure the value of `APP_ID` in `wrangler.toml` matches `VITE_APP_ID` in `.env.production` and the App ID configured in the js-bao admin UI.
+The `APP_ID` should match the App ID you created in the Primitive Admin console (this can be the same App ID you use for development, or a different one created specifically for production).
 
-### 3. Build for Production
+### 3. Deploy
 
-Create an optimized production build:
-
-```bash
-pnpm build
-```
-
-This will generate the static assets for your app in the `dist` directory, which Wrangler will deploy as your Worker’s assets.
-
-### 4. Deploy with Wrangler
-
-Once your production environment is configured and the app is built, deploy to Cloudflare Workers using the `production` environment defined in `wrangler.toml`:
+The `deploy` script handles everything: it syncs configuration from `wrangler.toml` to `.env.production`, builds the project, and deploys to Cloudflare Workers:
 
 ```bash
-pnpm dlx wrangler deploy --env production
+pnpm deploy --env production
 ```
 
-Wrangler will upload your Worker script, bind the `dist` assets, and configure any routes or custom domains specified under `[env.production]` in `wrangler.toml`.
+Any additional options are passed through to `wrangler deploy`. For example:
+
+```bash
+pnpm deploy --env production --dry-run
+```
