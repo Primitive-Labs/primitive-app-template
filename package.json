@@ -9,7 +9,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm codegen && node scripts/dev-launch.mjs",
-    "build": "pnpm codegen && pnpm format && run-p type-check \"build-only {@}\" --",
+    "build": "pnpm codegen && run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "clean-modules": "rm -rf node_modules pnpm-lock.yaml",
@@ -18,7 +18,7 @@
     "lint": "eslint . --fix --cache",
     "format:check": "prettier --check src/",
     "format": "prettier --write src/",
-    "codegen": "npx js-bao-codegen"
+    "codegen": "npx js-bao-codegen && pnpm format"
   },
   "dependencies": {
     "js-bao": "^0.2.9",
