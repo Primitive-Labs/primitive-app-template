@@ -11,7 +11,7 @@
     "dev": "pnpm codegen && node scripts/dev-launch.mjs",
     "build": "pnpm codegen && run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && pnpm clean-modules",
     "clean-modules": "rm -rf node_modules pnpm-lock.yaml",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
@@ -24,7 +24,7 @@
   "dependencies": {
     "js-bao": "^0.2.9",
     "js-bao-wss-client": "^1.0.22",
-    "primitive-app": "^1.0.6",
+    "primitive-app": "^1.0.7",
     "@tailwindcss/vite": "^4.1.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
