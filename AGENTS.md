@@ -27,7 +27,7 @@
 - ALWAYS use logger.createLogger to create a new logger for each file rather than logging to the console directly. Pass in the current log level with an explicit "level: getLogLevel()". NEVER use the primitiveAppBaseLogger.
 - ALWAYS add meaningful comments that explain WHY something is done, NEVER add comments that just explain what code does, or code changes from a prior version.
 - ALWAYS organize functions in code files in a logical order (e.g. "initialze" functions at the top of the file, a logical sequence or grouping, etc.). Add comments to break up sections of related functions.
-- ALWAYS run pnpm build after making changes and fix any errors.
+- ALWAYS run pnpm codegen and pnpm type-check after making changes and fix any errors.
 - NEVER modify worker.js. This is a library provided file and should not be edited.
 
 ## Vue Code Guidelines

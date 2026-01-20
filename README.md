@@ -119,10 +119,16 @@ VITE_OAUTH_REDIRECT_URI=https://my-app-prod.your-subdomain.workers.dev/oauth/cal
 ### 4. Deploy
 
 ```bash
-pnpm deploy --env production
+pnpm deploy production
 ```
 
 The deploy script reads `.env.production`, builds the project, and deploys to Cloudflare Workers.
+
+To pass additional flags to wrangler, use `--` followed by the flags:
+
+```bash
+pnpm deploy production -- --dry-run
+```
 
 ## Adding More Environments
 
@@ -144,7 +150,7 @@ REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 3. **Deploying:**
 
 ```bash
-pnpm deploy --env test
+pnpm deploy test
 ```
 
 The deploy script reads from `.env.{environment}` and uses `[env.{environment}]` from wrangler.toml.

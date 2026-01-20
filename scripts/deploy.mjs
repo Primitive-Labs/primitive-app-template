@@ -3,11 +3,12 @@
  * Deploy script that reads configuration from environment-specific .env files,
  * builds the project, and deploys to Cloudflare Workers.
  *
- * Usage: pnpm deploy --env <environment> [other wrangler options...]
+ * Usage: pnpm deploy <environment> [-- other wrangler options...]
  *
  * Examples:
- *   pnpm deploy --env test        -> reads .env.test, deploys to test worker
- *   pnpm deploy --env production  -> reads .env.production, deploys to prod worker
+ *   pnpm deploy test              -> reads .env.test, deploys to test worker
+ *   pnpm deploy production        -> reads .env.production, deploys to prod worker
+ *   pnpm deploy production -- --dry-run  -> with extra wrangler flags
  *
  * This script:
  * 1. Reads configuration from .env.{environment} (the source of truth)
@@ -70,18 +71,22 @@ const ENV_TO_WRANGLER_VARS = {
 
 /**
  * Parse command line arguments to extract the environment name
+ * Supports: pnpm deploy <env> [-- extra wrangler args]
  */
 function parseArgs(args) {
   let env = null;
   const wranglerArgs = [];
 
+  // First non-flag argument is the environment
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--env" && args[i + 1]) {
-      env = args[i + 1];
-      wranglerArgs.push(args[i], args[i + 1]);
-      i++; // skip the value
+    const arg = args[i];
+
+    if (!env && !arg.startsWith("-")) {
+      // First positional argument is the environment
+      env = arg;
     } else {
-      wranglerArgs.push(args[i]);
+      // Everything else goes to wrangler
+      wranglerArgs.push(arg);
     }
   }
 
@@ -118,11 +123,12 @@ async function main() {
   const { env, wranglerArgs } = parseArgs(args);
 
   if (!env) {
-    console.error("[deploy] Error: --env flag is required");
-    console.error("[deploy] Usage: pnpm deploy --env <environment>");
+    console.error("[deploy] Error: environment argument is required");
+    console.error("[deploy] Usage: pnpm deploy <environment>");
     console.error("[deploy] Examples:");
-    console.error("[deploy]   pnpm deploy --env test");
-    console.error("[deploy]   pnpm deploy --env production");
+    console.error("[deploy]   pnpm deploy test");
+    console.error("[deploy]   pnpm deploy production");
+    console.error("[deploy]   pnpm deploy production -- --dry-run");
     process.exit(1);
   }
 
@@ -198,6 +204,8 @@ async function main() {
       "dlx",
       "wrangler",
       "deploy",
+      "--env",
+      env,
       ...varFlags,
       ...wranglerArgs,
     ]);
