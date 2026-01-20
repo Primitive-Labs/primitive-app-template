@@ -3,12 +3,12 @@
  * Deploy script that reads configuration from environment-specific .env files,
  * builds the project, and deploys to Cloudflare Workers.
  *
- * Usage: pnpm deploy <environment> [-- other wrangler options...]
+ * Usage: pnpm cf-deploy <environment> [-- other wrangler options...]
  *
  * Examples:
- *   pnpm deploy test              -> reads .env.test, deploys to test worker
- *   pnpm deploy production        -> reads .env.production, deploys to prod worker
- *   pnpm deploy production -- --dry-run  -> with extra wrangler flags
+ *   pnpm cf-deploy test              -> reads .env.test, deploys to test worker
+ *   pnpm cf-deploy production        -> reads .env.production, deploys to prod worker
+ *   pnpm cf-deploy production -- --dry-run  -> with extra wrangler flags
  *
  * This script:
  * 1. Reads configuration from .env.{environment} (the source of truth)
@@ -71,7 +71,7 @@ const ENV_TO_WRANGLER_VARS = {
 
 /**
  * Parse command line arguments to extract the environment name
- * Supports: pnpm deploy <env> [-- extra wrangler args]
+ * Supports: pnpm cf-deploy <env> [-- extra wrangler args]
  */
 function parseArgs(args) {
   let env = null;
@@ -124,11 +124,11 @@ async function main() {
 
   if (!env) {
     console.error("[deploy] Error: environment argument is required");
-    console.error("[deploy] Usage: pnpm deploy <environment>");
+    console.error("[deploy] Usage: pnpm cf-deploy <environment>");
     console.error("[deploy] Examples:");
-    console.error("[deploy]   pnpm deploy test");
-    console.error("[deploy]   pnpm deploy production");
-    console.error("[deploy]   pnpm deploy production -- --dry-run");
+    console.error("[deploy]   pnpm cf-deploy test");
+    console.error("[deploy]   pnpm cf-deploy production");
+    console.error("[deploy]   pnpm cf-deploy production -- --dry-run");
     process.exit(1);
   }
 

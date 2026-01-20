@@ -7,7 +7,7 @@
 # passed to the worker at deploy time via --var flags. This keeps all app
 # config in .env files for consistency between development and production.
 #
-# To deploy: pnpm deploy --env production
+# To deploy: pnpm cf-deploy production
 # =============================================================================
 
 name = "YOUR APP NAME HERE"
@@ -22,7 +22,7 @@ not_found_handling = "single-page-application"
 # =============================================================================
 # PRODUCTION ENVIRONMENT
 # =============================================================================
-# Deploy with: pnpm deploy --env production
+# Deploy with: pnpm cf-deploy production
 # Config from: .env.production
 # =============================================================================
 [env.production]
@@ -56,4 +56,4 @@ REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 #
 # 2. Create .env.test with your test configuration
 #
-# 3. Deploy with: pnpm deploy --env test
+# 3. Deploy with: pnpm cf-deploy test

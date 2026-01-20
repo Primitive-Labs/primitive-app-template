@@ -116,10 +116,18 @@ VITE_APP_ID=your_production_app_id
 VITE_OAUTH_REDIRECT_URI=https://my-app-prod.your-subdomain.workers.dev/oauth/callback
 ```
 
-### 4. Deploy
+### 4. Configure Production URL in Primitive Admin
+
+Before deploying, make sure your app is configured with the production deployment URL in the [Primitive Admin console](https://admin.primitiveapi.com/login):
+
+1. Navigate to your app's settings
+2. Add your production URL (e.g., `https://my-app-prod.your-subdomain.workers.dev` or your custom domain) to the allowed origins
+3. If using Google OAuth, also update the OAuth callback URL to match your production domain
+
+### 5. Deploy
 
 ```bash
-pnpm deploy production
+pnpm cf-deploy production
 ```
 
 The deploy script reads `.env.production`, builds the project, and deploys to Cloudflare Workers.
@@ -127,7 +135,7 @@ The deploy script reads `.env.production`, builds the project, and deploys to Cl
 To pass additional flags to wrangler, use `--` followed by the flags:
 
 ```bash
-pnpm deploy production -- --dry-run
+pnpm cf-deploy production -- --dry-run
 ```
 
 ## Adding More Environments
@@ -150,7 +158,7 @@ REFRESH_PROXY_COOKIE_PATH = "/proxy/"
 3. **Deploying:**
 
 ```bash
-pnpm deploy test
+pnpm cf-deploy test
 ```
 
 The deploy script reads from `.env.{environment}` and uses `[env.{environment}]` from wrangler.toml.
