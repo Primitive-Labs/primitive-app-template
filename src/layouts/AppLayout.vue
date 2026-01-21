@@ -9,10 +9,6 @@
  *
  * This layout demonstrates a simple responsive pattern that apps can customize.
  */
-import { useMediaQuery } from "@vueuse/core";
-import { Menu } from "lucide-vue-next";
-import { EditProfile, PasskeyManagement } from "primitive-app";
-import { ref, onMounted, onBeforeUnmount } from "vue";
 import AppSidebar from "@/components/AppSidebar.vue";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +18,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { useMediaQuery } from "@vueuse/core";
+import { Menu } from "lucide-vue-next";
+import { EditProfile, PasskeyManagement } from "primitive-app";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 const sidebarOpen = ref(false);
