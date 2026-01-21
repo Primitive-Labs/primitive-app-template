@@ -1,4 +1,6 @@
 import { config } from "@/config/envConfig";
+import AppLayout from "@/layouts/AppLayout.vue";
+import LoginLayout from "@/layouts/LoginLayout.vue";
 import {
   createPrimitiveRouter,
   DebuggingSuiteDocuments,
@@ -6,8 +8,6 @@ import {
   DebuggingSuiteHome,
   DebuggingSuiteTests,
   DebugSuiteLayout,
-  PrimitiveAppLayout,
-  PrimitiveLoginLayout,
   PrimitiveLogout,
   PrimitiveNotFound,
   PrimitiveOauthCallback,
@@ -16,7 +16,6 @@ import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
 import HomePage from "../pages/HomePage.vue";
 import LoginPage from "../pages/LoginPage.vue";
-import ManageDocumentsPage from "../pages/ManageDocumentsPage.vue";
 
 const oauthCallbackPath = config.oauthRedirectUri
   ? new URL(config.oauthRedirectUri).pathname
@@ -25,7 +24,7 @@ const oauthCallbackPath = config.oauthRedirectUri
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    component: PrimitiveAppLayout,
+    component: AppLayout,
     children: [
       {
         path: "",
@@ -34,22 +33,6 @@ const routes: RouteRecordRaw[] = [
         meta: {
           primitiveRouterMeta: {
             requireAuth: "member",
-            breadcrumb: {
-              title: "Home",
-            },
-          },
-        },
-      },
-      {
-        path: "documents",
-        name: "documents",
-        component: ManageDocumentsPage,
-        meta: {
-          primitiveRouterMeta: {
-            requireAuth: "member",
-            breadcrumb: {
-              title: "Manage Documents",
-            },
           },
         },
       },
@@ -57,7 +40,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/",
-    component: PrimitiveLoginLayout,
+    component: LoginLayout,
     children: [
       {
         path: "login",
@@ -88,11 +71,11 @@ const routes: RouteRecordRaw[] = [
     component: DebugSuiteLayout,
     props: {
       testGroups: [],
-      appName: "Primitive App Demo",
+      appName: "Primitive Starter App",
     },
     meta: {
       primitiveRouterMeta: {
-        requireAuth: "member", // or "admin" if you want to restrict access to admins only
+        requireAuth: "member",
       },
     },
     children: [

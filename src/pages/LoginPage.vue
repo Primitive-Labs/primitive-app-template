@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import primitiveLogoIcon from "@/assets/primitive-logo.png";
 import { PieChart, TrendingDown } from "lucide-vue-next";
-import { PrimitiveLogin, useAppConfigStore } from "primitive-app";
+import { PrimitiveLogin } from "primitive-app";
 import { defineComponent, h, type Component } from "vue";
 
-const appConfig = useAppConfigStore();
+// App icon component
+const AppIcon = defineComponent({
+  name: "AppIcon",
+  setup() {
+    return () =>
+      h("img", {
+        src: primitiveLogoIcon,
+        alt: "App Icon",
+        class: "size-24",
+      });
+  },
+});
 
 const Feature1Content = defineComponent({
   name: "Feature1Content",
@@ -91,8 +103,8 @@ const carouselItems: Array<{
 <template>
   <PrimitiveLogin
     :appInfo="{
-      name: appConfig.appName(),
-      logo: appConfig.appIcon(),
+      name: 'Primitive Starter',
+      logo: AppIcon,
     }"
     :carousel="{
       items: carouselItems,
