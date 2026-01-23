@@ -10,15 +10,19 @@
  * This layout demonstrates a simple responsive pattern that apps can customize.
  */
 import AppSidebar from "@/components/AppSidebar.vue";
-import MobileTabBar, { type TabBarItem } from "@/components/MobileTabBar.vue";
-import MobileUserTab, {
-  type UserInfo,
-  type UserMenuItem,
-} from "@/components/MobileUserTab.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
 import { FolderOpen, Home, Key, User } from "lucide-vue-next";
-import { EditProfile, PasskeyManagement, useUserStore } from "primitive-app";
+import {
+  EditProfile,
+  PasskeyManagement,
+  PrimitiveMobileTabBar,
+  PrimitiveUserTabItem,
+  useUserStore,
+  type TabBarItem,
+  type UserTabMenuItem,
+  type UserTabUserInfo,
+} from "primitive-app";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
@@ -37,13 +41,13 @@ const mobileNavItems: TabBarItem[] = [
 // User store for mobile user menu
 const userStore = useUserStore();
 
-const mobileUserInfo = computed<UserInfo>(() => ({
+const mobileUserInfo = computed<UserTabUserInfo>(() => ({
   name: userStore.currentUser?.name ?? "User",
   email: userStore.currentUser?.email ?? "",
   avatarUrl: userStore.currentUser?.avatarUrl ?? undefined,
 }));
 
-const mobileMenuItems: UserMenuItem[] = [
+const mobileMenuItems: UserTabMenuItem[] = [
   { id: "edit-profile", label: "Edit Profile", icon: User },
   { id: "passkey-management", label: "Manage Passkeys", icon: Key },
 ];
@@ -156,16 +160,16 @@ onBeforeUnmount(() => {
           </slot>
         </main>
 
-        <MobileTabBar :items="mobileNavItems">
+        <PrimitiveMobileTabBar :items="mobileNavItems">
           <template #trailing>
-            <MobileUserTab
+            <PrimitiveUserTabItem
               :user="mobileUserInfo"
               :is-online="userStore.isOnline"
               :menu-items="mobileMenuItems"
               @menu-item-click="handleMobileMenuItemClick"
             />
           </template>
-        </MobileTabBar>
+        </PrimitiveMobileTabBar>
       </template>
     </div>
 

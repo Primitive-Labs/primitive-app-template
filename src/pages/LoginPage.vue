@@ -123,6 +123,7 @@ const autoplayPlugin = Autoplay({
           logo: AppIcon,
         }"
         defaultContinueRoute="home"
+        emailAuthMethod="one_time_code"
       />
     </aside>
 

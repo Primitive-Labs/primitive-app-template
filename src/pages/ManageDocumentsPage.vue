@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Page for managing documents - listing, creating, sharing, deleting.
- * Uses the PrimitiveManageDocuments component from primitive-app.
+ * Uses the PrimitiveDocumentList component from primitive-app.
  */
 import Button from "@/components/ui/button/Button.vue";
 import Dialog from "@/components/ui/dialog/Dialog.vue";
@@ -11,7 +11,7 @@ import DialogHeader from "@/components/ui/dialog/DialogHeader.vue";
 import DialogTitle from "@/components/ui/dialog/DialogTitle.vue";
 import Input from "@/components/ui/input/Input.vue";
 import Label from "@/components/ui/label/Label.vue";
-import { jsBaoClientService, PrimitiveManageDocuments } from "primitive-app";
+import { jsBaoClientService, PrimitiveDocumentList } from "primitive-app";
 import { Plus } from "lucide-vue-next";
 import { ref } from "vue";
 
@@ -59,7 +59,7 @@ async function handleCreateDocument(): Promise<void> {
       </Button>
     </div>
 
-    <PrimitiveManageDocuments
+    <PrimitiveDocumentList
       document-name="Document"
       @document-click="handleDocumentClick"
     />

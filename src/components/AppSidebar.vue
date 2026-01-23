@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
 import {
-  PrimitiveSingleDocumentSwitcher,
+  PrimitiveDocumentSwitcher,
   PrimitiveUserMenu,
   useUserStore,
   type UserMenuItem,
@@ -98,7 +98,7 @@ function handleSwitchDocument(documentId: string, title: string): void {
   <Sidebar :collapsible="props.mobile ? 'none' : 'icon'">
     <!-- Document switcher header -->
     <SidebarHeader>
-      <PrimitiveSingleDocumentSwitcher
+      <PrimitiveDocumentSwitcher
         label="Template App"
         :icon="AppIcon"
         document-name-plural="Documents"
