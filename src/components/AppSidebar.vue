@@ -3,7 +3,7 @@
  * Application sidebar component with collapsible support.
  *
  * Features:
- * - App name/logo header
+ * - Document switcher at the top
  * - Navigation items
  * - User menu at the bottom with dropdown
  * - Collapsible rail for desktop
@@ -11,15 +11,6 @@
  * Apps can customize navigation items, menu actions, and styling.
  */
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -33,8 +24,14 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronsUpDown, Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import { useUserStore } from "primitive-app";
+import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
+import {
+  PrimitiveSingleDocumentSwitcher,
+  PrimitiveUserMenu,
+  useUserStore,
+  type UserMenuItem,
+} from "primitive-app";
+import { computed, h } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 interface Props {
@@ -60,37 +57,55 @@ const userStore = useUserStore();
 const route = useRoute();
 const { isMobile } = useSidebar();
 
-// App name
-const appName = "Primitive Template App";
+// App icon component for the document switcher (functional component)
+const AppIcon = () =>
+  h("img", {
+    src: primitiveLogoIcon,
+    alt: "App Icon",
+    class: "size-6",
+  });
 
 // Navigation items - customize this for your app
 const navItems = [{ name: "home", label: "Home", icon: Home, path: "/" }];
 
+// User menu items - customize this for your app
+const userMenuItems = computed<UserMenuItem[]>(() => [
+  { id: "edit-profile", label: "Edit Profile", icon: Pencil },
+  { id: "manage-passkeys", label: "Manage Passkeys", icon: Key },
+  { id: "logout", label: "Log out", icon: LogOut, to: "/logout" },
+]);
+
 function handleNavClick(): void {
   emit("navigate");
+}
+
+function handleUserMenuItemClick(itemId: string): void {
+  if (itemId === "edit-profile") {
+    emit("open-edit-profile");
+  } else if (itemId === "manage-passkeys") {
+    emit("open-passkey-management");
+  }
+}
+
+function handleSwitchDocument(documentId: string, title: string): void {
+  // Handle document switching - customize this for your app
+  alert(`Selected ${title}`);
 }
 </script>
 
 <template>
   <!-- Sidebar component for both mobile and desktop -->
   <Sidebar :collapsible="props.mobile ? 'none' : 'icon'">
-    <!-- App header -->
+    <!-- Document switcher header -->
     <SidebarHeader>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size="lg"
-            class="cursor-default hover:bg-transparent"
-          >
-            <div
-              class="flex aspect-square size-8 items-center justify-center rounded-lg border"
-            >
-              <img :src="primitiveLogoIcon" alt="App Icon" class="size-4" />
-            </div>
-            <span class="truncate font-semibold">{{ appName }}</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
+      <PrimitiveSingleDocumentSwitcher
+        label="Template App"
+        :icon="AppIcon"
+        document-name-plural="Documents"
+        manage-documents-path="/documents"
+        :mobile="props.mobile"
+        @switch-document="handleSwitchDocument"
+      />
     </SidebarHeader>
 
     <!-- Navigation -->
@@ -115,81 +130,18 @@ function handleNavClick(): void {
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <SidebarMenuButton
-                size="lg"
-                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              >
-                <Avatar class="h-8 w-8 rounded-lg">
-                  <AvatarImage
-                    :src="userStore.currentUser?.avatarUrl || ''"
-                    :alt="userStore.currentUser?.name || ''"
-                  />
-                </Avatar>
-                <div class="grid flex-1 text-left text-sm leading-tight">
-                  <span class="truncate font-medium">{{
-                    userStore.currentUser?.name
-                  }}</span>
-                  <span class="truncate text-xs text-muted-foreground">{{
-                    userStore.currentUser?.email
-                  }}</span>
-                </div>
-                <ChevronsUpDown class="ml-auto size-4" />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-              :side="isMobile ? 'bottom' : 'right'"
-              align="end"
-              :side-offset="4"
-            >
-              <DropdownMenuLabel class="p-0 font-normal">
-                <div
-                  class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
-                >
-                  <Avatar class="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                      :src="userStore.currentUser?.avatarUrl || ''"
-                      :alt="userStore.currentUser?.name || ''"
-                    />
-                  </Avatar>
-                  <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-medium">{{
-                      userStore.currentUser?.name
-                    }}</span>
-                    <span class="truncate text-xs text-muted-foreground">{{
-                      userStore.currentUser?.email
-                    }}</span>
-                  </div>
-                  <!-- Online/offline indicator -->
-                  <span
-                    :class="
-                      userStore.isOnline
-                        ? 'ml-1 h-2 w-2 rounded-full bg-green-500'
-                        : 'ml-1 h-2 w-2 rounded-full bg-red-500'
-                    "
-                    :aria-label="userStore.isOnline ? 'Online' : 'Offline'"
-                  />
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem @click="emit('open-edit-profile')">
-                <Pencil class="mr-2 h-4 w-4" />
-                Edit Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem @click="emit('open-passkey-management')">
-                <Key class="mr-2 h-4 w-4" />
-                Manage Passkeys
-              </DropdownMenuItem>
-              <DropdownMenuItem as-child>
-                <RouterLink to="/logout" class="flex items-center">
-                  <LogOut class="mr-2 h-4 w-4" />
-                  Log out
-                </RouterLink>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <PrimitiveUserMenu
+            v-if="userStore.currentUser"
+            :user="{
+              name: userStore.currentUser.name,
+              email: userStore.currentUser.email,
+              avatarUrl: userStore.currentUser.avatarUrl,
+            }"
+            :is-online="userStore.isOnline"
+            :menu-items="userMenuItems"
+            :menu-side="isMobile ? 'bottom' : 'right'"
+            @menu-item-click="handleUserMenuItemClick"
+          />
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>

@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
-import { PieChart, TrendingDown } from "lucide-vue-next";
-import { PrimitiveLogin } from "primitive-app";
+import Autoplay from "embla-carousel-autoplay";
+import { Activity, PieChart, TrendingDown } from "lucide-vue-next";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  PrimitiveLogin,
+} from "primitive-app";
 import { defineComponent, h, type Component } from "vue";
 
-// App icon component
+// App icon component - uses size-full to fill parent container
 const AppIcon = defineComponent({
   name: "AppIcon",
   setup() {
@@ -12,7 +18,7 @@ const AppIcon = defineComponent({
       h("img", {
         src: primitiveLogoIcon,
         alt: "App Icon",
-        class: "size-24",
+        class: "size-full",
       });
   },
 });
@@ -79,12 +85,14 @@ const Feature2Content = defineComponent({
   },
 });
 
-const carouselItems: Array<{
+interface CarouselItemData {
   icon?: Component;
   title: string;
   description: string;
   content?: Component;
-}> = [
+}
+
+const carouselItems: CarouselItemData[] = [
   {
     icon: PieChart as unknown as Component,
     title: "Feature 1",
@@ -98,18 +106,63 @@ const carouselItems: Array<{
     content: Feature2Content,
   },
 ];
+
+const autoplayPlugin = Autoplay({
+  delay: 5000,
+  stopOnInteraction: true,
+});
 </script>
 
 <template>
-  <PrimitiveLogin
-    :appInfo="{
-      name: 'Primitive Starter',
-      logo: AppIcon,
-    }"
-    :carousel="{
-      items: carouselItems,
-      autoplayDelay: 2000,
-    }"
-    defaultContinueRoute="home"
-  />
+  <div class="fixed inset-0 overflow-hidden flex flex-col lg:flex-row">
+    <!-- Login form section -->
+    <aside class="w-full lg:basis-5/12">
+      <PrimitiveLogin
+        :appInfo="{
+          name: 'Primitive Template App',
+          logo: AppIcon,
+        }"
+        defaultContinueRoute="home"
+      />
+    </aside>
+
+    <!-- Marketing carousel section -->
+    <section
+      v-if="carouselItems.length > 0"
+      class="hidden lg:flex flex-1 min-w-0 flex-col bg-muted"
+    >
+      <Carousel
+        class="flex flex-col h-full"
+        :opts="{ loop: true, align: 'start' }"
+        :plugins="[autoplayPlugin]"
+        v-slot="{ scrollNext }"
+      >
+        <div class="cursor-pointer h-full" @click="scrollNext">
+          <CarouselContent class="w-full h-full">
+            <CarouselItem
+              v-for="(item, index) in carouselItems"
+              :key="index"
+              class="h-full"
+            >
+              <div
+                class="flex flex-col items-center justify-center h-full p-6 text-center"
+              >
+                <div class="mb-4">
+                  <component
+                    :is="item.icon || Activity"
+                    class="h-12 w-12 text-primary mx-auto mb-3"
+                  />
+                  <h2 class="text-xl font-bold mb-2">{{ item.title }}</h2>
+                  <p class="text-muted-foreground mb-4 text-sm">
+                    {{ item.description }}
+                  </p>
+                </div>
+                <component v-if="item.content" :is="item.content" />
+              </div>
+            </CarouselItem>
+          </CarouselContent>
+        </div>
+      </Carousel>
+    </section>
+  </div>
 </template>

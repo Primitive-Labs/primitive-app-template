@@ -4,54 +4,68 @@
  *
  * Features:
  * - Desktop: Collapsible sidebar that can minimize to icons
- * - Mobile: Sidebar opens as a sheet from hamburger menu
+ * - Mobile: Bottom tab bar navigation
  * - Service worker disconnect banner
  *
  * This layout demonstrates a simple responsive pattern that apps can customize.
  */
 import AppSidebar from "@/components/AppSidebar.vue";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import MobileTabBar, { type TabBarItem } from "@/components/MobileTabBar.vue";
+import MobileUserTab, {
+  type UserInfo,
+  type UserMenuItem,
+} from "@/components/MobileUserTab.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
-import { Menu } from "lucide-vue-next";
-import { EditProfile, PasskeyManagement } from "primitive-app";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { FolderOpen, Home, Key, User } from "lucide-vue-next";
+import { EditProfile, PasskeyManagement, useUserStore } from "primitive-app";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
-const sidebarOpen = ref(false);
 
-// Dialog state - managed here to avoid nested focus trap issues on mobile
+// Bottom tab bar items - customize these for your app
+const mobileNavItems: TabBarItem[] = [
+  { name: "home", label: "Home", icon: Home, path: "/" },
+  {
+    name: "documents",
+    label: "Documents",
+    icon: FolderOpen,
+    path: "/documents",
+  },
+];
+
+// User store for mobile user menu
+const userStore = useUserStore();
+
+const mobileUserInfo = computed<UserInfo>(() => ({
+  name: userStore.currentUser?.name ?? "User",
+  email: userStore.currentUser?.email ?? "",
+  avatarUrl: userStore.currentUser?.avatarUrl ?? undefined,
+}));
+
+const mobileMenuItems: UserMenuItem[] = [
+  { id: "edit-profile", label: "Edit Profile", icon: User },
+  { id: "passkey-management", label: "Manage Passkeys", icon: Key },
+];
+
+function handleMobileMenuItemClick(itemId: string): void {
+  if (itemId === "edit-profile") {
+    handleOpenEditProfile();
+  } else if (itemId === "passkey-management") {
+    handleOpenPasskeyManagement();
+  }
+}
+
+// Dialog state for desktop sidebar user menu
 const editProfileOpen = ref(false);
 const passkeyDialogOpen = ref(false);
 
 function handleOpenEditProfile(): void {
-  if (isMobile.value && sidebarOpen.value) {
-    // Close mobile sidebar first, wait for animation to complete
-    sidebarOpen.value = false;
-    setTimeout(() => {
-      editProfileOpen.value = true;
-    }, 350); // Slightly longer than the 300ms close animation
-  } else {
-    editProfileOpen.value = true;
-  }
+  editProfileOpen.value = true;
 }
 
 function handleOpenPasskeyManagement(): void {
-  if (isMobile.value && sidebarOpen.value) {
-    // Close mobile sidebar first, wait for animation to complete
-    sidebarOpen.value = false;
-    setTimeout(() => {
-      passkeyDialogOpen.value = true;
-    }, 350); // Slightly longer than the 300ms close animation
-  } else {
-    passkeyDialogOpen.value = true;
-  }
+  passkeyDialogOpen.value = true;
 }
 
 // Service worker disconnect detection
@@ -66,10 +80,6 @@ function handleRefresh(): void {
 
 function onKeyDown(e: KeyboardEvent): void {
   if (e.key === "Enter" || e.key === " ") handleRefresh();
-}
-
-function handleNavigate(): void {
-  sidebarOpen.value = false;
 }
 
 onMounted(() => {
@@ -137,41 +147,25 @@ onBeforeUnmount(() => {
         </SidebarInset>
       </SidebarProvider>
 
-      <!-- Mobile: Hamburger + Sheet -->
+      <!-- Mobile: Bottom tab bar navigation -->
       <template v-else>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="fixed top-4 left-4 z-40"
-          :class="{ 'top-14': swDisconnected }"
-          @click="sidebarOpen = true"
-        >
-          <Menu class="h-5 w-5" />
-          <span class="sr-only">Open menu</span>
-        </Button>
-
-        <Sheet v-model:open="sidebarOpen">
-          <SheetContent side="left" class="w-72 bg-sidebar p-0">
-            <SheetHeader class="sr-only">
-              <SheetTitle>Navigation</SheetTitle>
-            </SheetHeader>
-            <SidebarProvider class="!min-h-0 h-full !w-full">
-              <AppSidebar
-                mobile
-                @navigate="handleNavigate"
-                @open-edit-profile="handleOpenEditProfile"
-                @open-passkey-management="handleOpenPasskeyManagement"
-              />
-            </SidebarProvider>
-          </SheetContent>
-        </Sheet>
-
-        <!-- Main content area for mobile -->
-        <main class="flex-1 p-4 pt-16">
+        <!-- Main content area for mobile (with bottom padding for tab bar) -->
+        <main class="flex-1 p-4 pb-20">
           <slot>
             <router-view />
           </slot>
         </main>
+
+        <MobileTabBar :items="mobileNavItems">
+          <template #trailing>
+            <MobileUserTab
+              :user="mobileUserInfo"
+              :is-online="userStore.isOnline"
+              :menu-items="mobileMenuItems"
+              @menu-item-click="handleMobileMenuItemClick"
+            />
+          </template>
+        </MobileTabBar>
       </template>
     </div>
 

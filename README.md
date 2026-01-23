@@ -36,15 +36,29 @@ cd my-new-app
 pnpm install
 ```
 
-### 5. Create a Primitive App
+### 5. Install Primitive Admin CLI (Optional)
+
+The `primitive-admin` CLI tool provides command-line access to the Primitive Admin server for managing your app. Install it globally:
+
+```bash
+npm install -g primitive-admin
+```
+
+Once installed, you can access it using the `primitive` command:
+
+```bash
+primitive --help
+```
+
+### 6. Create a Primitive App
 
 Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and create a new app. Make note of your **App ID** for the next step.
 
-### 6. Configure Environment
+### 7. Configure Environment
 
 Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 5.
 
-### 7. Start Developing!
+### 8. Start Developing!
 
 You can start the dev server with
 

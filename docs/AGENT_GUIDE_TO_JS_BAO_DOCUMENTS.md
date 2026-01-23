@@ -62,6 +62,79 @@ const documents = await jsBaoClient.getDocuments();        // All documents (own
 const invitations = await jsBaoClient.getInvitations();    // Pending share invitations
 ```
 
+## Common Document Usage Patterns
+
+### Pattern 1: Single Document (Personal Apps)
+
+**Best for:** Personal tools, single-user apps, no sharing needed
+
+Each user gets exactly one document that holds all their data. The document is opened on app load / user sign-in. No document management UI is needed.
+
+**Examples:** Personal task manager, habit tracker, journal app, budgeting tool
+
+**User experience:** Users sign in and immediately see their data. No concept of "documents" is exposed in the UI.
+
+**Implementation:**
+```typescript
+// On app initialization / user sign-in
+const docId = await jsBaoClient.ensureDocWithAlias(
+  "My Data",
+  { scope: "user", aliasKey: "default-data" }
+);
+await jsBaoClient.openDocument(docId);
+```
+
+### Pattern 2: One Document at a Time (Workspaces)
+
+**Best for:** Apps where users create discrete projects or workspaces they might share
+
+Users have multiple documents but work in one at a time. They can create new documents, switch between them, and share each with different people.
+
+**Examples:**
+- Accounting app (one document per company)
+- Project management (one document per project)
+- Shared shopping lists (one list per household)
+
+**User experience:** Users see a document switcher in the UI. They can create new workspaces, rename them, share them with teammates, and switch between them.
+
+**Implementation:**
+```typescript
+// List available documents
+const documents = await jsBaoClient.getDocuments();
+
+// Open the selected document
+await jsBaoClient.openDocument(selectedDocumentId);
+
+// Create a new document/workspace
+const newDoc = await jsBaoClient.createDocument("New Project", ["workspace"]);
+```
+
+### Pattern 3: Multiple Documents by Tag (Channels/Collections)
+
+**Best for:** Apps that need multiple documents open simultaneously, queried together
+
+Multiple documents can be open at once, typically organized by tag. Documents are auto-opened based on their tags, allowing queries across all documents of a certain type.
+
+**Examples:**
+- Chat app (one document per channel, multiple channels visible)
+- Multi-tenant dashboard (separate data per client)
+- Collaborative workspace with distinct data collections
+
+**User experience:** The app manages which documents are open. Users might see a list of channels, each backed by a separate document with its own sharing settings.
+
+**Implementation:**
+```typescript
+// Get all documents with a specific tag
+const documents = await jsBaoClient.getDocuments();
+const channels = documents.filter(doc => doc.tags?.includes("channel"));
+
+// Open all channel documents
+await Promise.all(channels.map(ch => jsBaoClient.openDocument(ch.documentId)));
+
+// Query across all open documents
+const messages = await Message.query({ }, { documents: channels.map(ch => ch.documentId) });
+```
+
 ## Data Modeling Decisions
 
 ### Separate Documents When:
@@ -409,25 +482,6 @@ watch(
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Query returns empty | Document not opened | `await jsBaoClient.openDocument()` before query |
-| Computed doesn't update | Using `toRef(store, 'prop')` | Access store properties directly in computed |
 | Need document from item | N/A | Use `item.getDocumentId()` |
-
-## Architecture Template
-
-```
-src/
-├── models/
-│   ├── MyContainer.ts          # Singleton model for doc metadata
-│   └── MyItem.ts               # Child model (refs container by model ID)
-├── stores/
-│   └── myAppStore.ts           # App state (current selection, UI)
-├── composables/
-│   └── useGlobalSearch.ts      # Cross-document operations
-├── components/
-├── pages/
-│   ├── DocumentListPage.vue    # Shows all documents
-│   └── DocumentDetailPage.vue  # Shows single document
-└── layouts/
-    └── AppLayout.vue           # App layout with jsBaoClient setup
-```
+| Data doesn't update when route param changes | Vue reuses components; `useJsBaoDataLoader` doesn't see the change | Add the route param to `queryParams` in the data loader, OR use `:key="routeParam"` on the component |
+| Spread object missing data or reactivity broken | js-bao model objects don't support JavaScript spreading (`{ ...model }`) | Access properties directly or use explicit property copying: `{ id: model.id, title: model.title }` |
