@@ -24,7 +24,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
+import { Bug, Home, Key, LogOut, Pencil } from "lucide-vue-next";
 import {
   PrimitiveDocumentSwitcher,
   PrimitiveUserMenu,
@@ -68,6 +68,16 @@ const AppIcon = () =>
 // Navigation items - customize this for your app
 const navItems = [{ name: "home", label: "Home", icon: Home, path: "/" }];
 
+// Secondary navigation items (shown at bottom, desktop only, admin only)
+const secondaryNavItems = [
+  {
+    name: "debug",
+    label: "Debug Suite (Admin only)",
+    icon: Bug,
+    path: "/debug",
+  },
+];
+
 // User menu items - customize this for your app
 const userMenuItems = computed<UserMenuItem[]>(() => [
   { id: "edit-profile", label: "Edit Profile", icon: Pencil },
@@ -89,7 +99,9 @@ function handleUserMenuItemClick(itemId: string): void {
 
 function handleSwitchDocument(documentId: string, title: string): void {
   // Handle document switching - customize this for your app
-  alert(`Selected ${title}`);
+  alert(
+    `"${title}" selected. Add code here to wire this up in your application to the appropriate action.`
+  );
 }
 </script>
 
@@ -114,6 +126,25 @@ function handleSwitchDocument(documentId: string, title: string): void {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in navItems" :key="item.name">
+              <SidebarMenuButton as-child :is-active="route.path === item.path">
+                <RouterLink :to="item.path" @click="handleNavClick">
+                  <component :is="item.icon" />
+                  <span>{{ item.label }}</span>
+                </RouterLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <!-- Spacer to push secondary nav to bottom -->
+      <div class="flex-1" />
+
+      <!-- Secondary navigation (desktop only, admin only) -->
+      <SidebarGroup v-if="!props.mobile && userStore.isAdmin">
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem v-for="item in secondaryNavItems" :key="item.name">
               <SidebarMenuButton as-child :is-active="route.path === item.path">
                 <RouterLink :to="item.path" @click="handleNavClick">
                   <component :is="item.icon" />

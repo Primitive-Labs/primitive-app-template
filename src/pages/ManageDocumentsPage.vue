@@ -11,9 +11,25 @@ import DialogHeader from "@/components/ui/dialog/DialogHeader.vue";
 import DialogTitle from "@/components/ui/dialog/DialogTitle.vue";
 import Input from "@/components/ui/input/Input.vue";
 import Label from "@/components/ui/label/Label.vue";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { config } from "@/config/envConfig";
 import { jsBaoClientService, PrimitiveDocumentList } from "primitive-app";
+import { useMediaQuery } from "@vueuse/core";
 import { Plus } from "lucide-vue-next";
 import { ref } from "vue";
+
+const isMobile = useMediaQuery("(max-width: 640px)");
+
+// Template for invitation links using the configured base URL
+const inviteUrlTemplate = config.baseUrl
+  ? `${config.baseUrl}/documents/{documentId}`
+  : undefined;
 
 const isCreateOpen = ref(false);
 const newDocName = ref("");
@@ -21,7 +37,9 @@ const isCreating = ref(false);
 
 function handleDocumentClick(documentId: string, title: string): void {
   // Handle document click - customize this for your app
-  alert(`Selected ${title}`);
+  alert(
+    `"${title}" selected. Add code here to wire this up in your application to the appropriate action.`
+  );
 }
 
 async function handleCreateDocument(): Promise<void> {
@@ -61,11 +79,13 @@ async function handleCreateDocument(): Promise<void> {
 
     <PrimitiveDocumentList
       document-name="Document"
+      :invite-url-template="inviteUrlTemplate"
       @document-click="handleDocumentClick"
     />
 
-    <!-- Create document dialog -->
+    <!-- Create document dialog (desktop) -->
     <Dialog
+      v-if="!isMobile"
       :open="isCreateOpen"
       @update:open="(val: boolean) => (isCreateOpen = val)"
     >
@@ -95,5 +115,39 @@ async function handleCreateDocument(): Promise<void> {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <!-- Create document sheet (mobile) -->
+    <Sheet
+      v-if="isMobile"
+      :open="isCreateOpen"
+      @update:open="(val: boolean) => (isCreateOpen = val)"
+    >
+      <SheetContent side="bottom">
+        <SheetHeader>
+          <SheetTitle>New Document</SheetTitle>
+        </SheetHeader>
+        <div class="space-y-4 px-4 py-4">
+          <div class="grid gap-2">
+            <Label for="create-document-mobile">Document Name</Label>
+            <Input
+              id="create-document-mobile"
+              v-model="newDocName"
+              placeholder="e.g., My Document"
+              :disabled="isCreating"
+              @keyup.enter="handleCreateDocument"
+            />
+          </div>
+        </div>
+        <SheetFooter>
+          <Button
+            class="w-full"
+            :disabled="!newDocName.trim() || isCreating"
+            @click="handleCreateDocument"
+          >
+            {{ isCreating ? "Creating..." : "Create" }}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   </div>
 </template>

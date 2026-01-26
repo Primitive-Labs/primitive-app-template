@@ -11,6 +11,7 @@ export const config = {
   oauthRedirectUri: import.meta.env.VITE_OAUTH_REDIRECT_URI,
   enableAuthProxy: import.meta.env.VITE_ENABLE_AUTH_PROXY === "true",
   logLevel: import.meta.env.VITE_LOG_LEVEL,
+  baseUrl: import.meta.env.VITE_BASE_URL,
 };
 
 function getRefreshProxyBaseUrl(): string {
