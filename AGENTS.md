@@ -47,7 +47,7 @@
 ## Using Primitive-app
 
 - Primitive-app provides a library of useful UI components and Pinia stores for integrating with js-bao and the js-bao-wss-client. Use these components if they are a good fit for the user's request, or create your own.
-- Refer to the Primitive Docs at https://primitive-labs.github.io/primitive-docs/, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
+- Refer to the Primitive Docs and guidelines in @docs/AGENT_GUIDE_TO_JS_BAO_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
 - ALWAYS use the js-bao-wss-client library to make API requests. NEVER hit http endpoints directly to accomplish tasks with js-bao.
 - The @docs directory provides guides and design patterns for common usage scenarios.
@@ -55,7 +55,7 @@
 ### Data Storage and Loading
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend (auth, API calls, opening/closing js-bao documents, storing blobs, etc.).
-- ALWAYS refer to @docs/AGENT_GUIDE_TO_JS_BAO_DOCUMENTS when building a new app or making changes to the data model for important usage notes and suggested patterns.
+
 - ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
 - NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, do that processing in loadData.
 - NEVER rely on the component remounting when route params change; the jsBaoDataLoader monitors its queryParams object so ALWAYS include relevant route parameters in this object to trigger a reload.
@@ -71,7 +71,7 @@
 
 ### useJsBaoDataLoader Pattern
 
-- ALWAYS pass a `documentReady` ref/computed to `useJsBaoDataLoader`. For single-document apps, use `useSingleDocumentStore().isReady`. For multi-document collections, use `multiDocStore.getCollectionReadyRef("collectionName")`.
+- ALWAYS pass a `documentReady` ref/computed to `useJsBaoDataLoader`. This should be true after the relevant document(s) have been opened using the js-bao-wss-client.
 - The loader returns `initialDataLoaded` which becomes `true` only after the first successful `loadData` call completes. Use this (not `documentReady`) with `PrimitiveSkeletonGate`.
 - Make rendering/redirect decisions based ONLY on the loaded `data`. Only act on data after `initialDataLoaded` is true.
 - If you need to perform a side effect (like a redirect) after data loads, use a `watch` on `initialDataLoaded` that fires once when it becomes true, then make decisions based on `data.value`.
