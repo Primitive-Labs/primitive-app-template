@@ -189,6 +189,33 @@ const todoLists = documents.filter((doc) => doc.tags?.includes("todolist"));
 
 ## Defining Models
 
+### Creating New Model Files
+
+When creating a new js-bao model file, follow this exact workflow:
+
+**Step 1: Create the minimal model file** with only these required sections:
+
+```typescript
+import { BaseModel, defineModelSchema } from "js-bao";
+
+const todoSchema = defineModelSchema({
+  name: "Todo",
+  // Add fields here as needed (see Field Types below)
+});
+
+export class Todo extends BaseModel {
+  static schema = todoSchema;
+}
+```
+
+**Step 2: Add the model to `getJsBaoConfig`** in your config file so js-bao knows about it.
+
+**Step 3: Run `pnpm codegen`** to generate the auto-generated sections. This generates TypeScript types, field accessors, and other boilerplate code.
+
+**Step 4: Make any additional edits** to the schema (adding fields, constraints, etc.) and run `pnpm codegen` again.
+
+**CRITICAL: NEVER create or edit auto-generated sections yourself.** The codegen script maintains these code blocks. Look for comments like `// --- auto-generated ---` to identify them. If you manually edit these sections, your changes will be overwritten the next time codegen runs.
+
 ### Field Types
 
 | Type        | Description                  | Common Options                 |

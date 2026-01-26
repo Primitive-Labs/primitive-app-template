@@ -47,7 +47,7 @@
 ## Using Primitive-app
 
 - Primitive-app provides a library of useful UI components and Pinia stores for integrating with js-bao and the js-bao-wss-client. Use these components if they are a good fit for the user's request, or create your own.
-- Refer to the Primitive Docs and guidelines in @docs/AGENT_GUIDE_TO_JS_BAO_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
+- Refer to the Primitive Docs and guidelines in @docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
 - ALWAYS use the js-bao-wss-client library to make API requests. NEVER hit http endpoints directly to accomplish tasks with js-bao.
 - The @docs directory provides guides and design patterns for common usage scenarios.
@@ -56,13 +56,36 @@
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend (auth, API calls, opening/closing js-bao documents, storing blobs, etc.).
 
+### Creating New js-bao Models
+
+When creating a new model file, follow this exact workflow:
+
+1. **Create the minimal model file** with only these required sections:
+
+```typescript
+import { BaseModel, defineModelSchema } from "js-bao";
+
+const todoSchema = defineModelSchema({
+  name: "Todo",
+  // Add fields here as needed
+});
+
+export class Todo extends BaseModel {
+  static schema = todoSchema;
+}
+```
+
+2. **Add the model to `getJsBaoConfig`** in your config file.
+
+3. **Run `pnpm codegen`** to generate the auto-generated sections (TypeScript types, field accessors, etc.).
+
+4. **NEVER create or edit auto-generated sections yourself.** The codegen script maintains these code blocks. Look for comments like `// --- auto-generated ---` to identify them.
 - ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
 - NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, do that processing in loadData.
 - NEVER rely on the component remounting when route params change; the jsBaoDataLoader monitors its queryParams object so ALWAYS include relevant route parameters in this object to trigger a reload.
 - PREFER filtering for needed data using js-bao .query() rather than querying all objects and filtering in Javascript. If those queryParams can be changed by application state, pass those to the jsBaoDataLoader via queryParams.
 - PREFER loading data in pages rather than sub-components. Pass data into sub components directly.
 - NEVER remove data fields from js-bao models, just add a comment that they have been deprecated.
-- ALWAYS add newly created models to the models param in getJsBaoConfig. Run pnpm codegen after creating a new model.
 - When using useJsBaoDataLoader, ALWAYS return a single structured object from loadData and, for sequences of related mutations (save/delete/reorder), set pauseUpdates while mutating then call a single reload() afterward to avoid mid-interaction flicker.
 - JS-Bao query always operates over ALL open documents. You NEVER need to iterate over documents to query. You can filter results by documentId or any other field on the ORM.
 - ALWAYS model data references entirely in objects, using model IDs to create connections. Don't rely on document boundaries for modeling relationships.
