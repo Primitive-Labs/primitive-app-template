@@ -23,20 +23,7 @@ corepack prepare pnpm@latest --activate
 
 If you prefer, you can also install pnpm using other methods described in the [pnpm installation guide](https://pnpm.io/installation).
 
-### 3. Clone Your New Repository
-
-```bash
-git clone https://github.com/your-username/my-new-app.git
-cd my-new-app
-```
-
-### 4. Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 5. Install Primitive Admin CLI (Optional)
+### 3. Install the Primitive CLI
 
 The `primitive-admin` CLI tool provides command-line access to the Primitive Admin server for managing your app. Install it globally:
 
@@ -44,19 +31,56 @@ The `primitive-admin` CLI tool provides command-line access to the Primitive Adm
 npm install -g primitive-admin
 ```
 
-Once installed, you can access it using the `primitive` command:
+Once installed, authenticate with your Primitive account:
 
 ```bash
-primitive --help
+primitive login
+```
+
+This will open a browser window for you to sign in. After signing in, you can verify your authentication:
+
+```bash
+primitive whoami
+```
+
+### 4. Clone Your New Repository
+
+```bash
+git clone https://github.com/your-username/my-new-app.git
+cd my-new-app
+```
+
+### 5. Install Dependencies
+
+```bash
+pnpm install
 ```
 
 ### 6. Create a Primitive App
 
-Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and create a new app. Make note of your **App ID** for the next step.
+You need to create an app in the Primitive Admin system to get an **App ID** for your project.
+
+**Option A: Using the CLI**
+
+```bash
+primitive apps create "My New App"
+```
+
+This will output your new **App ID**. You can also list your apps at any time:
+
+```bash
+primitive apps list
+```
+
+**Option B: Using the Dashboard**
+
+Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and create a new app through the web interface.
+
+Make note of your **App ID** for the next step.
 
 ### 7. Configure Environment
 
-Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 5.
+Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 6.
 
 ### 8. Start Developing!
 
