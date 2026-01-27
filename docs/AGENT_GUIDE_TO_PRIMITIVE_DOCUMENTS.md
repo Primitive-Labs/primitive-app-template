@@ -40,6 +40,8 @@ A **document** is:
 
 6. **Prefer `.query()` filtering over JavaScript filtering.** If filter params change based on app state, pass them via `queryParams` to the data loader.
 
+7. **NEVER store application data in the root document.** The root document is automatically opened by primitive-app and is reserved exclusively for user preferences (UserPref model). Application data should be stored in separate documents—use the "single document" pattern with aliases for personal apps, or the "one document at a time" pattern for multi-workspace apps. Store the last-used document ID in UserPrefs to restore state on login.
+
 ## Document Lifecycle
 
 ### 1. Open Documents Before Querying

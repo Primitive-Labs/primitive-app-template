@@ -47,7 +47,7 @@
 ## Using Primitive-app
 
 - Primitive-app provides a library of useful UI components and Pinia stores for integrating with js-bao and the js-bao-wss-client. Use these components if they are a good fit for the user's request, or create your own.
-- Refer to the Primitive Docs and guidelines in @docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
+- Refer to the Primitive Docs and guidelines in @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
 - ALWAYS use the js-bao-wss-client library to make API requests. NEVER hit http endpoints directly to accomplish tasks with js-bao.
 - The @docs directory provides guides and design patterns for common usage scenarios.
@@ -55,6 +55,7 @@
 ### Data Storage and Loading
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend (auth, API calls, opening/closing js-bao documents, storing blobs, etc.).
+- NEVER store application data in the root document. The root document is reserved for user preferences (UserPref model) only. Application data should be stored in separate documents using either the "single document" pattern (with aliases) or "one document at a time" pattern. See @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md for details.
 
 ### Creating New js-bao Models
 
@@ -80,6 +81,7 @@ export class Todo extends BaseModel {
 3. **Run `pnpm codegen`** to generate the auto-generated sections (TypeScript types, field accessors, etc.).
 
 4. **NEVER create or edit auto-generated sections yourself.** The codegen script maintains these code blocks. Look for comments like `// --- auto-generated ---` to identify them.
+
 - ALWAYS use useJsBaoDataLoader for data loading. Use it no more than once per component to load data. When multiple documents are open, this will automatically query across all open documents.
 - NEVER add a watch function that triggers on the results of the loadData function changing. Instead, if there is processing required after data changes, do that processing in loadData.
 - NEVER rely on the component remounting when route params change; the jsBaoDataLoader monitors its queryParams object so ALWAYS include relevant route parameters in this object to trigger a reload.
@@ -113,6 +115,7 @@ export class Todo extends BaseModel {
 - NEVER build components from scratch. If a default shadcn-vue component does not meet the project needs, create new components by composing shadcn-vue components.
 - ALWAYS use TailwindCSS classes rather than manual CSS.
 - NEVER hard code colors, use Tailwind's color system.
+- ALWAYS use `v-model` for two-way binding with shadcn-vue Switch and Checkbox components. These components use Reka UI internally which expects `modelValue`/`update:modelValue`, NOT `checked`/`update:checked`. Using `:checked` + `@update:checked` will not work.
 
 ### Writing Components
 
