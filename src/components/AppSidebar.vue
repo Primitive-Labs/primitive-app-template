@@ -25,7 +25,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Bug, Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import { PrimitiveUserMenu, useUserStore, type UserMenuItem } from "primitive-app";
+import {
+  PrimitiveUserMenu,
+  useUserStore,
+  type UserMenuItem,
+} from "primitive-app";
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -97,7 +101,9 @@ function handleUserMenuItemClick(itemId: string): void {
             alt="App Icon"
             class="size-5 shrink-0"
           />
-          <span class="flex-1 text-left text-base font-medium leading-tight truncate">
+          <span
+            class="flex-1 text-left text-base font-medium leading-tight truncate"
+          >
             Template App
           </span>
         </div>
