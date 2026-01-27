@@ -118,13 +118,23 @@ const autoplayPlugin = Autoplay({
     <!-- Login form section -->
     <aside class="w-full lg:basis-5/12">
       <PrimitiveLogin
-        :appInfo="{
-          name: 'Primitive Template App',
-          logo: AppIcon,
-        }"
+        appName="Primitive Template App"
         defaultContinueRoute="home"
         emailAuthMethod="magic_link"
-      />
+      >
+        <template #header>
+          <div class="flex justify-center gap-2 lg:justify-start">
+            <a href="#" class="flex items-center gap-2 font-medium">
+              <div
+                class="flex aspect-square size-8 items-center justify-center rounded-lg border"
+              >
+                <AppIcon class="size-6" />
+              </div>
+              Primitive Template App
+            </a>
+          </div>
+        </template>
+      </PrimitiveLogin>
     </aside>
 
     <!-- Marketing carousel section -->
