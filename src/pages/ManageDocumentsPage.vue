@@ -26,10 +26,8 @@ import { ref } from "vue";
 
 const isMobile = useMediaQuery("(max-width: 640px)");
 
-// Template for invitation links using the configured base URL
-const inviteUrlTemplate = config.baseUrl
-  ? `${config.baseUrl}/documents/{documentId}`
-  : undefined;
+// Template for invitation links - use root URL since template app handles documents there
+const inviteUrlTemplate = config.baseUrl || undefined;
 
 const isCreateOpen = ref(false);
 const newDocName = ref("");
