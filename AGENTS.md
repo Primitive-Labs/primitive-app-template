@@ -47,7 +47,7 @@
 ## Using Primitive-app
 
 - Primitive-app provides a library of useful UI components and Pinia stores for integrating with js-bao and the js-bao-wss-client. Use these components if they are a good fit for the user's request, or create your own.
-- Refer to the Primitive Docs and guidelines in @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
+- Refer to the Primitive Docs and guidelines in @./docs, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
 - ALWAYS use the js-bao-wss-client library to make API requests. NEVER hit http endpoints directly to accomplish tasks with js-bao.
 - The @docs directory provides guides and design patterns for common usage scenarios.
