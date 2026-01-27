@@ -414,7 +414,7 @@ const {
 - **Return a single structured object** from `loadData`
 - NEVER add a watch on `loadData` results. Do processing inside `loadData`.
 - NEVER rely on component remounting for route param changes. The loader only sees changes via `queryParams`.
-- `initialDataLoaded` becomes true after the first successful `loadData`. Use this (not `documentReady`) with `PrimitiveSkeletonGate`.
+- `initialDataLoaded` becomes true after the first successful `loadData`. Use this (not `documentReady`) with `PrimitiveLoadingGate`.
 - Make rendering/redirect decisions ONLY after `initialDataLoaded` is true.
 - For side effects after load (like redirects), watch `initialDataLoaded` and act when it becomes true.
 - For sequences of mutations (save/delete/reorder), set `pauseUpdates` while mutating, then call `reload()` afterward to avoid flicker.

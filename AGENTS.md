@@ -97,7 +97,7 @@ export class Todo extends BaseModel {
 ### useJsBaoDataLoader Pattern
 
 - ALWAYS pass a `documentReady` ref/computed to `useJsBaoDataLoader`. This should be true after the relevant document(s) have been opened using the js-bao-wss-client.
-- The loader returns `initialDataLoaded` which becomes `true` only after the first successful `loadData` call completes. Use this (not `documentReady`) with `PrimitiveSkeletonGate`.
+- The loader returns `initialDataLoaded` which becomes `true` only after the first successful `loadData` call completes. Use this (not `documentReady`) with `PrimitiveLoadingGate`.
 - Make rendering/redirect decisions based ONLY on the loaded `data`. Only act on data after `initialDataLoaded` is true.
 - If you need to perform a side effect (like a redirect) after data loads, use a `watch` on `initialDataLoaded` that fires once when it becomes true, then make decisions based on `data.value`.
 
@@ -119,14 +119,15 @@ export class Todo extends BaseModel {
 
 ### Writing Components
 
-- It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveSkeletonGate, waiting until the required data is available.
+- It is NEVER an error for components to mount before js-bao document isReady becomes true or data is loaded. Components should handle this case using jsBaoDataLoader and PrimitiveLoadingGate, waiting until the required data is available.
 - AVOID writing business logic in Vue components. Components should be focused on rendering and UI interaction - move data manipulation and business logic to a related /lib file so it can be tested.
 - ALWAYS make customizations at the layout level, not in App.vue. You can compose a provided primitive-app layout to customize it, or create a new one.
 
-### PrimitiveSkeletonGate Pattern
+### PrimitiveLoadingGate Pattern
 
-- Use `PrimitiveSkeletonGate` with `:is-ready="initialDataLoaded"` to show loading state while data loads.
-- For skeleton content, create a Skeleton component using shadcn-vue Skeleton that mimics the eventual loaded data on the page.
+- Use `PrimitiveLoadingGate` with `:is-ready="initialDataLoaded"` to show loading state while data loads.
+- The gate includes a configurable delay (default 50ms) before showing the loading slot to avoid flash of loading for fast operations.
+- The `#loading` slot accepts any loading indicator: skeletons, spinners, progress bars, or custom loading UI.
 
 ## Writing Tests
 

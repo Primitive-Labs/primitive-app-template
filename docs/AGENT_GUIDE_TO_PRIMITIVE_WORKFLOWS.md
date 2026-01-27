@@ -5,6 +5,7 @@ This guide explains the workflow syntax and CLI commands for creating and managi
 ## Overview
 
 Workflows are multi-step automation pipelines that execute sequentially. They support:
+
 - AI/LLM calls (OpenAI, Gemini)
 - External API integrations
 - Data transformation
@@ -12,10 +13,54 @@ Workflows are multi-step automation pipelines that execute sequentially. They su
 - Managed prompts
 
 **Key concepts:**
+
 - **Definition**: The workflow configuration (metadata + steps)
 - **Draft**: Editable version of a workflow (stored in R2)
 - **Revision**: Published, immutable version of a workflow
 - **Run**: A single execution instance of a workflow
+
+## Publishing Workflows
+
+**Important:** Workflows must be **published** and set to `active` status before they can be called from the client.
+
+Unlike prompts which only need `status = "active"`, workflows have a two-step publishing process:
+
+### Workflow Status Lifecycle
+
+| Status     | Has Revision | Can Run from Client | Can Preview via CLI |
+| ---------- | ------------ | ------------------- | ------------------- |
+| `draft`    | No           | No                  | Yes                 |
+| `draft`    | Yes          | No                  | Yes                 |
+| `active`   | Yes          | Yes                 | Yes                 |
+| `archived` | -            | No                  | No                  |
+
+### Publishing Steps
+
+1. **Create/update the workflow** (creates a draft)
+2. **Publish the draft** to create an immutable revision
+3. **Set status to active** to allow client execution
+
+```bash
+# Step 1: Create workflow from TOML
+primitive workflows create --from-file workflow.toml
+
+# Step 2: Publish the draft (creates revision)
+primitive workflows publish <workflow-id>
+
+# Step 3: Set to active
+primitive workflows update <workflow-id> --status active
+```
+
+**Via TOML sync:** Setting `status = "active"` in the TOML file will fail with "Cannot activate workflow without a revision" if you haven't published first. Always publish via CLI before setting to active.
+
+### Common Error
+
+If you see `HTTP 404: Workflow not found` when calling `client.workflows.start()`:
+
+1. Verify the workflow exists with `primitive workflows list`
+2. Check the workflow has `status = "active"` (not `draft`)
+3. Ensure the workflow has been published (`latestRevision` should not be null)
+4. If using prompts, verify those prompts also have `status = "active"`
 
 ## Workflow Definition Structure
 
@@ -226,13 +271,13 @@ Workflows use Mustache-style `{{ }}` templates with path resolution.
 
 ### Template Context Variables
 
-| Variable | Description |
-|----------|-------------|
-| `input` | Root input payload passed to the workflow |
-| `selected` | Result of step's `selector` (if used) |
-| `steps` | All step outputs by step ID |
-| `outputs` | Named outputs (via `saveAs`) |
-| `meta` | Workflow metadata (`startedAt`, `userId`, etc.) |
+| Variable   | Description                                     |
+| ---------- | ----------------------------------------------- |
+| `input`    | Root input payload passed to the workflow       |
+| `selected` | Result of step's `selector` (if used)           |
+| `steps`    | All step outputs by step ID                     |
+| `outputs`  | Named outputs (via `saveAs`)                    |
+| `meta`     | Workflow metadata (`startedAt`, `userId`, etc.) |
 
 ### Path Access Examples
 
@@ -319,11 +364,13 @@ runIf = "input.primary || input.fallback"   # Runs if either is truthy
 ```
 
 **Supported operators:**
+
 - `< number` - Less than comparison
 - `||` - Fallback/OR logic
 - Truthy evaluation (any path resolves to truthy value)
 
 **Not supported:**
+
 - Arithmetic (`+`, `-`, `*`, `/`)
 - Equality comparisons (`==`, `!=`)
 - Greater than (`>`, `>=`, `<=`)
@@ -348,6 +395,7 @@ processed = "{{ selected.value }}"
 ```
 
 **Selector sources:**
+
 - `{ source = "root" }` - Use root input (default)
 - `{ source = "step", stepId = "step-id" }` - Use output from specific step
 - `{ source = "context", path = "outputs.namedOutput" }` - Use path into context
@@ -355,6 +403,7 @@ processed = "{{ selected.value }}"
 ## Output Contract
 
 ### How outputs are stored:
+
 1. Every step result is stored under `steps[stepId]`
 2. If step has `saveAs`, also stored under `outputs[saveAs]`
 3. Final workflow output is:
@@ -502,6 +551,7 @@ primitive workflows tests attachments upload <workflow-id> <test-case-id> ./file
 ### Example 1: PDF Summarizer with Haiku
 
 This workflow:
+
 1. Summarizes a PDF using a managed prompt
 2. Generates a haiku from the summary
 3. Returns both as the final output
@@ -545,6 +595,7 @@ haiku = "{{ steps.generate-haiku.content }}"
 ### Example 2: Conditional LLM Chain
 
 This workflow:
+
 1. Generates a headline with LLM
 2. Conditionally rewrites it if too short
 
@@ -586,6 +637,7 @@ wasRewritten = "{{ outputs.second-llm.content }}"
 ### Example 3: External API Integration
 
 This workflow:
+
 1. Calls an external weather API
 2. Transforms the response
 
@@ -758,22 +810,27 @@ runIf = "input.processDeep"   # Negation not supported, use separate logic
 ## Troubleshooting
 
 ### "Workflow not found"
+
 - Verify the workflow ID is correct
 - Ensure you're using the correct app context
 
 ### "Draft has no steps"
+
 - Run `primitive workflows draft update` to add steps before preview/publish
 
 ### Template not resolving
+
 - Check path exists in context (`input`, `steps`, `outputs`)
 - Use fallback values: `{{ input.field || 'default' }}`
 - Verify step IDs match exactly
 
 ### runIf not working
+
 - Only supports: truthy checks, `< number`, `||` fallback
 - Does not support: `>`, `>=`, `<=`, `==`, `!=`, arithmetic
 
 ### Integration call failing
+
 - Verify `integrationKey` matches a configured integration
 - Check the integration is active
 - Verify request path/method are correct

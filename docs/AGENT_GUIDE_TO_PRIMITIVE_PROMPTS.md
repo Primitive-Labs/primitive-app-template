@@ -5,11 +5,52 @@ This guide explains the Primitive CLI prompt system—how to create, configure, 
 ## Overview
 
 The prompt feature provides:
+
 - **Prompt definitions** with multiple configurations (different models, providers, parameters)
 - **Template-based prompts** with variable substitution using `{{ }}` syntax
 - **Test cases** with verification (pattern matching, contains checks, JSON subset matching, LLM-based evaluation)
 - **Versioning** via multiple configs per prompt
 - **TOML file sync** for version-controlled prompt management
+
+## Publishing Prompts
+
+**Important:** Prompts must be set to `active` status before they can be called from workflows or the client.
+
+By default, new prompts are created with `status = "draft"`. Draft prompts can be tested using the CLI but cannot be executed in production workflows.
+
+### Prompt Status Lifecycle
+
+| Status     | Can Execute from Workflow | Can Test via CLI | Editable |
+| ---------- | ------------------------- | ---------------- | -------- |
+| `draft`    | No                        | Yes              | Yes      |
+| `active`   | Yes                       | Yes              | Yes      |
+| `archived` | No                        | No               | No       |
+
+### Activating a Prompt
+
+**Option 1: Via TOML file**
+
+```toml
+[prompt]
+key = "my-prompt"
+status = "active"  # Change from "draft" to "active"
+```
+
+Then push with `primitive sync push --dir ./config`
+
+**Option 2: Via CLI**
+
+```bash
+primitive prompts update <prompt-id> --status active
+```
+
+### Common Error
+
+If you see `HTTP 404: Workflow not found` when running a workflow that uses a prompt, check:
+
+1. The prompt exists and has `status = "active"` (not `draft`)
+2. The workflow exists and has `status = "active"` (not `draft`)
+3. The workflow has been published (use `primitive workflows publish <workflow-id>`)
 
 ## Template Syntax
 
@@ -110,29 +151,29 @@ userPromptTemplate = "Respond to: {{ input.text }}"
 
 ### Prompt Section Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `key` | Yes | Unique identifier within the app (use kebab-case) |
-| `displayName` | Yes | Human-readable name |
-| `description` | No | Description of what the prompt does |
-| `status` | No | `draft` (default), `active`, or `archived` |
-| `inputSchema` | No | JSON Schema string for input validation |
-| `outputSchema` | No | JSON Schema string for structured output |
+| Field          | Required | Description                                       |
+| -------------- | -------- | ------------------------------------------------- |
+| `key`          | Yes      | Unique identifier within the app (use kebab-case) |
+| `displayName`  | Yes      | Human-readable name                               |
+| `description`  | No       | Description of what the prompt does               |
+| `status`       | No       | `draft` (default), `active`, or `archived`        |
+| `inputSchema`  | No       | JSON Schema string for input validation           |
+| `outputSchema` | No       | JSON Schema string for structured output          |
 
 ### Config Section Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Config name (unique within prompt) |
-| `description` | No | Description of this configuration |
-| `provider` | Yes | `gemini` or `openrouter` |
-| `model` | Yes | Model identifier |
-| `userPromptTemplate` | Yes | User prompt with `{{ }}` variables |
-| `systemPrompt` | No | System prompt |
-| `temperature` | No | Temperature as string (e.g., `"0.7"`) |
-| `topP` | No | Top-p sampling as string (e.g., `"0.9"`) |
-| `maxTokens` | No | Max output tokens (integer) |
-| `outputFormat` | No | `text` (default) or `json` |
+| Field                | Required | Description                              |
+| -------------------- | -------- | ---------------------------------------- |
+| `name`               | Yes      | Config name (unique within prompt)       |
+| `description`        | No       | Description of this configuration        |
+| `provider`           | Yes      | `gemini` or `openrouter`                 |
+| `model`              | Yes      | Model identifier                         |
+| `userPromptTemplate` | Yes      | User prompt with `{{ }}` variables       |
+| `systemPrompt`       | No       | System prompt                            |
+| `temperature`        | No       | Temperature as string (e.g., `"0.7"`)    |
+| `topP`               | No       | Top-p sampling as string (e.g., `"0.9"`) |
+| `maxTokens`          | No       | Max output tokens (integer)              |
+| `outputFormat`       | No       | `text` (default) or `json`               |
 
 ### Multiple Configs Example
 
