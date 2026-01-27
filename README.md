@@ -1,4 +1,4 @@
-# Primitive Labs Template App
+# Primitive Template App
 
 A production-ready Vue application template built with TypeScript, Vite, and the `primitive-app` framework.
 
@@ -10,7 +10,7 @@ For guides and API reference docs, see **Primitive Docs**: https://primitive-lab
 
 ### 1. Create a New Repository from Template
 
-On [GitHub.com](https://github.com), navigate to this template repository and click the **"Use this template"** green button in the upper right. This will copy all the files to a new repository for your project.
+Navigate to this [template repository](https://github.com/Primitive-Labs/primitive-app-template) on Github and click the **"Use this template"** green button in the upper right. This will copy all the files to a new repository for your project.
 
 ### 2. Install pnpm
 
