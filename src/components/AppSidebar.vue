@@ -3,7 +3,7 @@
  * Application sidebar component with collapsible support.
  *
  * Features:
- * - Document switcher at the top
+ * - App name/icon header at the top
  * - Navigation items
  * - User menu at the bottom with dropdown
  * - Collapsible rail for desktop
@@ -25,13 +25,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Bug, Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import {
-  PrimitiveDocumentSwitcher,
-  PrimitiveUserMenu,
-  useUserStore,
-  type UserMenuItem,
-} from "primitive-app";
-import { computed, h } from "vue";
+import { PrimitiveUserMenu, useUserStore, type UserMenuItem } from "primitive-app";
+import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 interface Props {
@@ -56,14 +51,6 @@ const emit = defineEmits<Emits>();
 const userStore = useUserStore();
 const route = useRoute();
 const { isMobile } = useSidebar();
-
-// App icon component for the document switcher (functional component)
-const AppIcon = () =>
-  h("img", {
-    src: primitiveLogoIcon,
-    alt: "App Icon",
-    class: "size-6",
-  });
 
 // Navigation items - customize this for your app
 const navItems = [{ name: "home", label: "Home", icon: Home, path: "/" }];
@@ -96,28 +83,25 @@ function handleUserMenuItemClick(itemId: string): void {
     emit("open-passkey-management");
   }
 }
-
-function handleSwitchDocument(documentId: string, title: string): void {
-  // Handle document switching - customize this for your app
-  alert(
-    `"${title}" selected. Add code here to wire this up in your application to the appropriate action.`
-  );
-}
 </script>
 
 <template>
   <!-- Sidebar component for both mobile and desktop -->
   <Sidebar :collapsible="props.mobile ? 'none' : 'icon'">
-    <!-- Document switcher header -->
+    <!-- App header -->
     <SidebarHeader>
-      <PrimitiveDocumentSwitcher
-        label="Template App"
-        :icon="AppIcon"
-        document-name-plural="Documents"
-        manage-documents-path="/documents"
-        :mobile="props.mobile"
-        @switch-document="handleSwitchDocument"
-      />
+      <div class="pt-1 px-1">
+        <div class="flex w-full items-center gap-2 rounded-md p-2">
+          <img
+            :src="primitiveLogoIcon"
+            alt="App Icon"
+            class="size-5 shrink-0"
+          />
+          <span class="flex-1 text-left text-base font-medium leading-tight truncate">
+            Template App
+          </span>
+        </div>
+      </div>
     </SidebarHeader>
 
     <!-- Navigation -->

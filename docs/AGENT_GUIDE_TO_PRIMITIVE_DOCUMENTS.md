@@ -107,7 +107,15 @@ Users have multiple documents but work in one at a time. They can create new doc
 - Project management (one document per project)
 - Shared shopping lists (one list per household)
 
-**User experience:** Users see a document switcher in the UI. They can create new workspaces, rename them, share them with teammates, and switch between them. Primitive provides the PrimitiveDocumentSwitcher for convenience in implementing this pattern.
+**User experience:** Users see a document switcher in the UI. They can create new workspaces, rename them, share them with teammates, and switch between them.
+
+**UI Components:** The `primitive-app` library provides two components that are particularly helpful for this pattern:
+
+- **`PrimitiveDocumentSwitcher`** - A dropdown menu designed for the sidebar header. Shows the current app/document name with an icon, lists available documents for quick switching, displays pending invitation badges, and links to a "Manage Documents" page. Emits events when users switch documents so the app can handle the transition.
+
+- **`PrimitiveDocumentList`** - A full document management interface suitable for a dedicated "Manage Documents" page. Displays documents in a table (desktop) or list (mobile) with support for renaming, sharing, deleting, and accepting invitations. Handles permission-based UI (only owners can delete, etc.).
+
+Both components load document data directly from the js-bao client, listen for metadata changes to stay current, and work well together—the switcher for quick access, the list for full management.
 
 **Implementation:**
 

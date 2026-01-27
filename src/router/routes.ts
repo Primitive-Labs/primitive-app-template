@@ -16,7 +16,6 @@ import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
 import HomePage from "../pages/HomePage.vue";
 import LoginPage from "../pages/LoginPage.vue";
-import ManageDocumentsPage from "../pages/ManageDocumentsPage.vue";
 
 const oauthCallbackPath = config.oauthRedirectUri
   ? new URL(config.oauthRedirectUri).pathname
@@ -31,16 +30,6 @@ const routes: RouteRecordRaw[] = [
         path: "",
         name: "home",
         component: HomePage,
-        meta: {
-          primitiveRouterMeta: {
-            requireAuth: "member",
-          },
-        },
-      },
-      {
-        path: "documents",
-        name: "documents",
-        component: ManageDocumentsPage,
         meta: {
           primitiveRouterMeta: {
             requireAuth: "member",

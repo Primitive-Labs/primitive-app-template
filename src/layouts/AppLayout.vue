@@ -12,7 +12,7 @@
 import AppSidebar from "@/components/AppSidebar.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
-import { FolderOpen, Home, Key, User } from "lucide-vue-next";
+import { Home, Key, User } from "lucide-vue-next";
 import {
   EditProfile,
   PasskeyManagement,
@@ -30,12 +30,6 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 // Bottom tab bar items - customize these for your app
 const mobileNavItems: TabBarItem[] = [
   { name: "home", label: "Home", icon: Home, path: "/" },
-  {
-    name: "documents",
-    label: "Documents",
-    icon: FolderOpen,
-    path: "/documents",
-  },
 ];
 
 // User store for mobile user menu
