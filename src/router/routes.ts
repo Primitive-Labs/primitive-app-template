@@ -9,13 +9,13 @@ import {
   DebuggingSuiteTests,
   DebugSuiteLayout,
   PrimitiveLogout,
-  PrimitiveNotFound,
   PrimitiveOauthCallback,
 } from "primitive-app";
 import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
 import HomePage from "../pages/HomePage.vue";
 import LoginPage from "../pages/LoginPage.vue";
+import NotFoundPage from "../pages/NotFoundPage.vue";
 
 const oauthCallbackPath = config.oauthRedirectUri
   ? new URL(config.oauthRedirectUri).pathname
@@ -104,7 +104,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/:pathMatch(.*)*",
     name: "not-found",
-    component: PrimitiveNotFound,
+    component: NotFoundPage,
     meta: {
       primitiveRouterMeta: {
         requireAuth: "none",
