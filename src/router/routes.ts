@@ -3,11 +3,6 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import LoginLayout from "@/layouts/LoginLayout.vue";
 import {
   createPrimitiveRouter,
-  DebuggingSuiteDocuments,
-  DebuggingSuiteDocumentsModel,
-  DebuggingSuiteHome,
-  DebuggingSuiteTests,
-  DebugSuiteLayout,
   PrimitiveLogout,
   PrimitiveOauthCallback,
 } from "primitive-app";
@@ -63,41 +58,6 @@ const routes: RouteRecordRaw[] = [
           continueRoute: "home",
           loginRoute: "login",
         },
-      },
-    ],
-  },
-  {
-    path: "/debug",
-    component: DebugSuiteLayout,
-    props: {
-      testGroups: [],
-      appName: "Primitive Template App",
-    },
-    meta: {
-      primitiveRouterMeta: {
-        requireAuth: "member",
-      },
-    },
-    children: [
-      {
-        path: "",
-        name: "debug-home",
-        component: DebuggingSuiteHome,
-      },
-      {
-        path: "test",
-        name: "debug-test",
-        component: DebuggingSuiteTests,
-      },
-      {
-        path: "documents",
-        name: "debug-documents",
-        component: DebuggingSuiteDocuments,
-      },
-      {
-        path: "documents/:model",
-        name: "debug-documents-model",
-        component: DebuggingSuiteDocumentsModel,
       },
     ],
   },
