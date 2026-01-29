@@ -1,7 +1,7 @@
 // Environment and js-bao configuration for the template app
 import { allModels } from "@/models";
 import type { JsBaoClientOptions } from "js-bao-wss-client";
-import type { LogLevel } from "primitive-app";
+import type { LogLevel } from "@/lib/logger";
 
 // Raw environment-derived config shared between router, js-bao, and logging
 export const config = {

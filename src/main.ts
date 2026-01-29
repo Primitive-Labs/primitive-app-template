@@ -1,5 +1,5 @@
 import { getJsBaoConfig, getLogLevel } from "@/config/envConfig";
-import { createPrimitiveApp } from "primitive-app";
+import { createPrimitiveApp } from "@/createPrimitiveApp";
 import App from "./App.vue";
 import router from "./router/routes";
 import "./style.css";

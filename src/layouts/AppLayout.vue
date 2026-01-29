@@ -13,16 +13,16 @@ import AppSidebar from "@/components/AppSidebar.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
 import { Home, Key, User } from "lucide-vue-next";
-import {
-  EditProfile,
-  PasskeyManagement,
-  PrimitiveMobileTabBar,
-  PrimitiveUserTabItem,
-  useUserStore,
+import EditProfile from "@/components/auth/EditProfile.vue";
+import PasskeyManagement from "@/components/auth/PasskeyManagement.vue";
+import PrimitiveMobileTabBar, {
   type TabBarItem,
+} from "@/components/shared/PrimitiveMobileTabBar.vue";
+import PrimitiveUserTabItem, {
   type UserTabMenuItem,
   type UserTabUserInfo,
-} from "primitive-app";
+} from "@/components/shared/PrimitiveUserTabItem.vue";
+import { useUserStore } from "@/stores/userStore";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const isMobile = useMediaQuery("(max-width: 768px)");

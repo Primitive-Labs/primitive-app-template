@@ -40,7 +40,7 @@ A **document** is:
 
 6. **Prefer `.query()` filtering over JavaScript filtering.** If filter params change based on app state, pass them via `queryParams` to the data loader.
 
-7. **NEVER store application data in the root document.** The root document is automatically opened by primitive-app and is reserved exclusively for user preferences (UserPref model). Application data should be stored in separate documents—use the "single document" pattern with aliases for personal apps, or the "one document at a time" pattern for multi-workspace apps. Store the last-used document ID in UserPrefs to restore state on login.
+7. **Understand the root document's role and limitations.** The root document is a special per-user document that is automatically created and opened. It can never be shared or deleted, and there is exactly one per user. The primitive template uses it to store user preferences via `userStore`—a great place for settings that should be available whenever the user signs in. While the root document can hold any js-bao model, we recommend storing most application data in regular documents for greater flexibility (sharing, collaboration, multiple documents). Use the "single document" pattern with aliases for personal apps, or the "one document at a time" pattern for multi-workspace apps.
 
 ## Document Lifecycle
 

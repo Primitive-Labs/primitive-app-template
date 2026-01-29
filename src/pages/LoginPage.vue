@@ -6,8 +6,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  PrimitiveLogin,
-} from "primitive-app";
+} from "@/components/ui/carousel";
+import PrimitiveLogin from "@/components/auth/PrimitiveLogin.vue";
 import { defineComponent, h, type Component } from "vue";
 
 // App icon component - uses size-full to fill parent container

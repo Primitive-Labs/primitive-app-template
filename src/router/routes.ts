@@ -1,11 +1,9 @@
 import { config } from "@/config/envConfig";
 import AppLayout from "@/layouts/AppLayout.vue";
 import LoginLayout from "@/layouts/LoginLayout.vue";
-import {
-  createPrimitiveRouter,
-  PrimitiveLogout,
-  PrimitiveOauthCallback,
-} from "primitive-app";
+import PrimitiveLogout from "@/components/auth/PrimitiveLogout.vue";
+import PrimitiveOauthCallback from "@/components/auth/PrimitiveOauthCallback.vue";
+import { createPrimitiveRouter } from "@/router/primitiveRouter";
 import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
 import HomePage from "../pages/HomePage.vue";

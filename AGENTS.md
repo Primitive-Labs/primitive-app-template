@@ -55,7 +55,7 @@
 ### Data Storage and Loading
 
 - ALWAYS use js-bao for data persistence, and the js-bao-wss-client for interacting with the backend (auth, API calls, opening/closing js-bao documents, storing blobs, etc.).
-- NEVER store application data in the root document. The root document is reserved for user preferences (UserPref model) only. Application data should be stored in separate documents using either the "single document" pattern (with aliases) or "one document at a time" pattern. See @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md for details.
+- The **root document** is a special per-user document that is automatically created and can never be shared or deleted (there is exactly one per user). The primitive template uses it to store user preferences via `userStore`, making settings automatically available whenever the user signs in. While the root document can hold any js-bao model, we recommend storing most application data in regular documents for greater flexibility (sharing, collaboration, multiple documents, etc.). See @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md for details.
 
 ### Creating New js-bao Models
 

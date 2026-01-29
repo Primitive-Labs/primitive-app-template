@@ -25,11 +25,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Bug, Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import {
-  PrimitiveUserMenu,
-  useUserStore,
+import PrimitiveUserMenu, {
   type UserMenuItem,
-} from "primitive-app";
+} from "@/components/shared/PrimitiveUserMenu.vue";
+import { useUserStore } from "@/stores/userStore";
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
