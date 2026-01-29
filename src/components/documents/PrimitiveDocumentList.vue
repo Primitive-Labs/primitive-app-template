@@ -34,7 +34,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { appBaseLogger } from "@/lib/logger";
-import { jsBaoClientService } from "primitive-app";
 import { useMediaQuery } from "@vueuse/core";
 import type {
   DocumentInfo,
@@ -50,6 +49,7 @@ import {
   Users,
   X,
 } from "lucide-vue-next";
+import { jsBaoClientService } from "primitive-app";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import PrimitiveShareDocumentDialog from "./PrimitiveShareDocumentDialog.vue";
 
@@ -673,7 +673,7 @@ const handleClearLocalCache = async () => {
     <!-- Mobile list view -->
     <Card class="sm:hidden">
       <CardContent class="p-0">
-        <SkeletonGate :is-ready="documentListLoaded">
+        <LoadingGate :is-ready="documentListLoaded">
           <template #skeleton>
             <div class="divide-y">
               <template v-for="index in 3" :key="`mobile-skeleton-${index}`">
@@ -912,7 +912,7 @@ const handleClearLocalCache = async () => {
               </div>
             </template>
           </div>
-        </SkeletonGate>
+        </LoadingGate>
       </CardContent>
     </Card>
 

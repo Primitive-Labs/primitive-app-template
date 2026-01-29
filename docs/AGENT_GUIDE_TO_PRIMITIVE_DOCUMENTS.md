@@ -64,6 +64,8 @@ const invitations = await jsBaoClient.me.pendingDocumentInvitations(); // Pendin
 
 ## Common Document Usage Patterns
 
+**Helper Stores:** This project includes `singleDocumentStore` and `multiDocumentStore` in `/src/stores/` that implement the patterns described below. These stores handle document opening, closing, readiness tracking, and state management. They can be used as-is, customized to fit your needs, or ignored in favor of application-specific approaches.
+
 ### Pattern 1: Single Document (Personal Apps)
 
 **Best for:** Personal tools, single-user apps, no sharing needed
@@ -109,7 +111,7 @@ Users have multiple documents but work in one at a time. They can create new doc
 
 **User experience:** Users see a document switcher in the UI. They can create new workspaces, rename them, share them with teammates, and switch between them.
 
-**UI Components:** The `primitive-app` library provides two components that are particularly helpful for this pattern:
+**UI Components:** This project includes document management components in `src/components/documents/` that are particularly helpful for this pattern:
 
 - **`PrimitiveDocumentSwitcher`** - A dropdown menu designed for the sidebar header. Shows the current app/document name with an icon, lists available documents for quick switching, displays pending invitation badges, and links to a "Manage Documents" page. Emits events when users switch documents so the app can handle the transition.
 

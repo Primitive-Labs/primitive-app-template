@@ -6,15 +6,17 @@
 
 - `/src/assets`: Static images/assets
 - `/src/components`: Vue Components. Organized by area.
+- `/src/components/documents`: Document management components (PrimitiveDocumentSwitcher, PrimitiveDocumentList, PrimitiveShareDocumentDialog).
 - `/src/components/ui`: Installation location for base shadcn-vue components.
 - `/src/config`: Config options for primitive app
 - `/src/lib`: Shared business logic, not Vue specific -- pure typescript code only.
-- `src/composables`: Vue composables.
-- `src/layouts`: Vue layout components. Used directly by the router to render different layouts for different types of pages based on route
-- `src/models`: JS-bao model file definitions.
-- `src/pages`: Top level Vue components that map to a route.
-- `src/router`: Vue-router configuration
-- `src/tests`: Tests registered with the primitive-app test harness.
+- `/src/composables`: Vue composables (useJsBaoDataLoader, useTheme).
+- `/src/layouts`: Vue layout components. Used directly by the router to render different layouts for different types of pages based on route
+- `/src/models`: JS-bao model file definitions.
+- `/src/pages`: Top level Vue components that map to a route.
+- `/src/router`: Vue-router configuration
+- `/src/stores`: Pinia stores (userStore, jsBaoDocumentsStore, singleDocumentStore, multiDocumentStore).
+- `/src/tests`: Tests registered with the primitive-app test harness.
 
 ## General Coding Guidelines
 
@@ -46,8 +48,9 @@
 
 ## Using Primitive-app
 
-- Primitive-app provides a library of useful UI components and Pinia stores for integrating with js-bao and the js-bao-wss-client. Use these components if they are a good fit for the user's request, or create your own.
-- Refer to the Primitive Docs and guidelines in @./docs, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
+- Primitive-app (the library) provides: jsBaoClientService for initializing js-bao, dev tools (test harness, document explorer), and shared UI components (PrimitiveLoadingGate, PrimitiveLogoSpinner, DeleteConfirmationDialog).
+- This project includes additional Pinia stores (in `/src/stores`) and document components (in `/src/components/documents`) that may be helpful in implementing common use patterns. They can be used as is, customized as needed, or removed in favor of application specific code.
+- Refer to the Primitive Docs and guidelines in @./docs/AGENT_GUIDE_TO_PRIMITIVE_DOCUMENTS.md, @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
 - ALWAYS use the js-bao-wss-client library to make API requests. NEVER hit http endpoints directly to accomplish tasks with js-bao.
 - The @docs directory provides guides and design patterns for common usage scenarios.
