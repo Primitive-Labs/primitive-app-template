@@ -232,6 +232,11 @@ export const useSingleDocumentStore = defineStore("singleDocument", () => {
       isReady.value = false;
       currentDocumentId.value = null;
 
+      // Initialize the documents store first to load document list and set up listeners
+      const documentsStore = useJsBaoDocumentsStore();
+      await documentsStore.initialize();
+      initLogger.debug("jsBaoDocumentsStore initialized");
+
       // Try to open the last used document, or create/open default
       const openedFromLastUsed = await tryOpenLastUsedDocument();
       if (!openedFromLastUsed) {
