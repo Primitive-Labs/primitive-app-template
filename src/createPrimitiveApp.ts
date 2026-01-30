@@ -4,8 +4,7 @@ import { createApp, type App as VueApp } from "vue";
 import type { Router } from "vue-router";
 
 import type { LogLevel } from "./lib/logger";
-import { appBaseLogger } from "./lib/logger";
-import { initializeJsBao } from "primitive-app";
+import { initializeJsBao, setPrimitiveAppLogLevel } from "primitive-app";
 import { useUserStore } from "./stores/userStore";
 
 type JsBaoConfig = Parameters<typeof initializeJsBao>[0];
@@ -66,7 +65,7 @@ export async function createPrimitiveApp(
   options: PrimitiveAppBootstrapOptions
 ): Promise<PrimitiveAppBootstrapResult> {
   if (options.logLevel) {
-    appBaseLogger.level = options.logLevel;
+    setPrimitiveAppLogLevel(options.logLevel);
   }
 
   const app = createApp(options.mainComponent);

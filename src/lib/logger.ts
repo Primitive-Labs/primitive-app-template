@@ -1,3 +1,5 @@
+import { getLogLevel } from "@/config/envConfig";
+
 export type LogLevel = "debug" | "info" | "warn" | "error" | "none";
 
 type ConsoleMethod = "debug" | "log" | "warn" | "error";
@@ -10,11 +12,6 @@ const LEVEL_RANK: Record<LogLevel, number> = {
   error: 3,
   none: 4,
 };
-
-/**
- * Library-wide default log level used when no explicit level is provided.
- */
-const DEFAULT_LOG_LEVEL: LogLevel = "warn";
 
 interface LevelController {
   level: LogLevel;
@@ -109,7 +106,7 @@ class LoggerImpl implements Logger {
 
 export function createLogger(options?: LoggerOptions): Logger {
   const controller: LevelController = {
-    level: options?.level ?? DEFAULT_LOG_LEVEL,
+    level: options?.level ?? getLogLevel(),
   };
   const scope = Array.isArray(options?.scope)
     ? options!.scope.map((s) => String(s))
@@ -120,11 +117,11 @@ export function createLogger(options?: LoggerOptions): Logger {
 }
 
 // -----------------------------------------------------------------------------
-// App scoped logger
+// App scoped logger - initializes from env config
 // -----------------------------------------------------------------------------
 
 const appLevelController: LevelController = {
-  level: DEFAULT_LOG_LEVEL,
+  level: getLogLevel(),
 };
 
 const appRootLogger = new LoggerImpl(appLevelController, []);
