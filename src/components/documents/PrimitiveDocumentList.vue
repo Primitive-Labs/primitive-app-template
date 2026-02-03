@@ -78,6 +78,7 @@ interface PendingInvitation {
   invitedBy: string;
   invitedAt: string;
   title?: string;
+  tags?: string[];
 }
 
 interface Props {
@@ -265,14 +266,7 @@ const invitationItems = computed(() => {
     .filter((inv): inv is PendingInvitation & { documentId: string } => {
       return Boolean(inv && inv.documentId);
     })
-    .filter((inv) => {
-      // Invitations may not have tags, so include them if no filter is set
-      if (!props.filterTags || props.filterTags.length === 0) {
-        return true;
-      }
-      // If the invitation has document metadata with tags, filter by those
-      return false; // Invitations without tag info are excluded when filtering
-    })
+    .filter((inv) => matchesTagFilter(inv.tags ?? []))
     .map((inv) => {
       return {
         type: "invitation" as const,
