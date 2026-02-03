@@ -12,10 +12,12 @@ import DropdownMenuItem from "@/components/ui/dropdown-menu/DropdownMenuItem.vue
 import DropdownMenuSeparator from "@/components/ui/dropdown-menu/DropdownMenuSeparator.vue";
 import DropdownMenuTrigger from "@/components/ui/dropdown-menu/DropdownMenuTrigger.vue";
 import { appBaseLogger } from "@/lib/logger";
+import type { PendingInvitation } from "@/stores/jsBaoDocumentsStore";
 import { jsBaoClientService } from "primitive-app";
 import type {
   DocumentInfo,
   DocumentMetadataChangedEvent,
+  InvitationEvent,
 } from "js-bao-wss-client";
 import { ChevronDown, FolderOpen } from "lucide-vue-next";
 import type { Component } from "vue";
@@ -34,19 +36,6 @@ interface TrackedDocument {
   permission: DocumentInfo["permission"];
   tags: string[];
   title: string;
-}
-
-/**
- * Pending invitation with document metadata.
- */
-interface PendingInvitation {
-  invitationId: string;
-  documentId: string;
-  email: string;
-  permission: "owner" | "read-write" | "reader";
-  invitedBy: string;
-  invitedAt: string;
-  title?: string;
 }
 
 interface Props {
@@ -105,6 +94,7 @@ const documentListLoaded = ref(false);
 
 // Track event listener cleanup
 let metadataChangeUnsubscribe: (() => void) | null = null;
+let invitationUnsubscribe: (() => void) | null = null;
 
 /**
  * Convert a DocumentInfo from js-bao to our TrackedDocument type.
@@ -159,9 +149,10 @@ const loadInvitations = async (): Promise<void> => {
 onMounted(async () => {
   await Promise.all([loadDocuments(), loadInvitations()]);
 
-  // Listen for document metadata changes to auto-refresh the list
   const client = await jsBaoClientService.getClientAsync();
-  const handler = (event: DocumentMetadataChangedEvent) => {
+
+  // Listen for document metadata changes to auto-refresh the list
+  const metadataHandler = (event: DocumentMetadataChangedEvent) => {
     const action = event.action;
     // Refresh list when documents are created, updated, or deleted
     if (action === "created" || action === "updated" || action === "deleted") {
@@ -170,11 +161,27 @@ onMounted(async () => {
         action,
       });
       loadDocuments();
+      // Also refresh invitations when a document is created, as this happens
+      // when accepting an invitation (no separate invitation event is sent)
+      if (action === "created") {
+        loadInvitations();
+      }
     }
   };
-  client.on("documentMetadataChanged", handler);
+  client.on("documentMetadataChanged", metadataHandler);
   metadataChangeUnsubscribe = () =>
-    client.off("documentMetadataChanged", handler);
+    client.off("documentMetadataChanged", metadataHandler);
+
+  // Listen for invitation events to auto-refresh the invitations list
+  const invitationHandler = (event: InvitationEvent) => {
+    logger.debug("Invitation event received, refreshing invitations", {
+      action: event.action,
+      documentId: event.documentId,
+    });
+    loadInvitations();
+  };
+  client.on("invitation", invitationHandler);
+  invitationUnsubscribe = () => client.off("invitation", invitationHandler);
 });
 
 // Clean up event listeners on unmount
@@ -182,6 +189,10 @@ onUnmounted(() => {
   if (metadataChangeUnsubscribe) {
     metadataChangeUnsubscribe();
     metadataChangeUnsubscribe = null;
+  }
+  if (invitationUnsubscribe) {
+    invitationUnsubscribe();
+    invitationUnsubscribe = null;
   }
 });
 

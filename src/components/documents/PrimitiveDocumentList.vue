@@ -25,6 +25,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import Skeleton from "@/components/ui/skeleton/Skeleton.vue";
+import type { PendingInvitation } from "@/stores/jsBaoDocumentsStore";
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ import { useMediaQuery } from "@vueuse/core";
 import type {
   DocumentInfo,
   DocumentMetadataChangedEvent,
+  InvitationEvent,
 } from "js-bao-wss-client";
 import {
   Check,
@@ -65,20 +67,6 @@ interface TrackedDocument {
   permission: DocumentInfo["permission"];
   tags: string[];
   title: string;
-}
-
-/**
- * Pending invitation with document metadata.
- */
-interface PendingInvitation {
-  invitationId: string;
-  documentId: string;
-  email: string;
-  permission: "owner" | "read-write" | "reader";
-  invitedBy: string;
-  invitedAt: string;
-  title?: string;
-  tags?: string[];
 }
 
 interface Props {
@@ -186,14 +174,16 @@ const loadInvitations = async (): Promise<void> => {
 
 // Track event listener cleanup
 let metadataChangeUnsubscribe: (() => void) | null = null;
+let invitationUnsubscribe: (() => void) | null = null;
 
 // Load data on mount and set up event listeners
 onMounted(async () => {
   await Promise.all([loadDocuments(), loadInvitations()]);
 
-  // Listen for document metadata changes to auto-refresh the list
   const client = await jsBaoClientService.getClientAsync();
-  const handler = (event: DocumentMetadataChangedEvent) => {
+
+  // Listen for document metadata changes to auto-refresh the list
+  const metadataHandler = (event: DocumentMetadataChangedEvent) => {
     const action = event.action;
     // Refresh list when documents are created, updated, or deleted
     if (action === "created" || action === "updated" || action === "deleted") {
@@ -202,11 +192,27 @@ onMounted(async () => {
         action,
       });
       loadDocuments();
+      // Also refresh invitations when a document is created, as this happens
+      // when accepting an invitation (no separate invitation event is sent)
+      if (action === "created") {
+        loadInvitations();
+      }
     }
   };
-  client.on("documentMetadataChanged", handler);
+  client.on("documentMetadataChanged", metadataHandler);
   metadataChangeUnsubscribe = () =>
-    client.off("documentMetadataChanged", handler);
+    client.off("documentMetadataChanged", metadataHandler);
+
+  // Listen for invitation events to auto-refresh the invitations list
+  const invitationHandler = (event: InvitationEvent) => {
+    logger.debug("Invitation event received, refreshing invitations", {
+      action: event.action,
+      documentId: event.documentId,
+    });
+    loadInvitations();
+  };
+  client.on("invitation", invitationHandler);
+  invitationUnsubscribe = () => client.off("invitation", invitationHandler);
 });
 
 // Clean up event listeners on unmount
@@ -214,6 +220,10 @@ onUnmounted(() => {
   if (metadataChangeUnsubscribe) {
     metadataChangeUnsubscribe();
     metadataChangeUnsubscribe = null;
+  }
+  if (invitationUnsubscribe) {
+    invitationUnsubscribe();
+    invitationUnsubscribe = null;
   }
 });
 
@@ -266,7 +276,7 @@ const invitationItems = computed(() => {
     .filter((inv): inv is PendingInvitation & { documentId: string } => {
       return Boolean(inv && inv.documentId);
     })
-    .filter((inv) => matchesTagFilter(inv.tags ?? []))
+    .filter((inv) => matchesTagFilter(inv.document?.tags ?? []))
     .map((inv) => {
       return {
         type: "invitation" as const,

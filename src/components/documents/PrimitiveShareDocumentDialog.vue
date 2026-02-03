@@ -599,11 +599,16 @@ const handleCancelAddPeople = () => {
                       v-if="currentUserIsOwner"
                       :model-value="row.permission"
                       @update:model-value="
-                        (v) =>
-                          handleUpdatePermission(
-                            row.id,
-                            v as 'read-write' | 'reader'
-                          )
+                        (v) => {
+                          if (v === '__remove__') {
+                            handleRemovePermission(row.id);
+                          } else {
+                            handleUpdatePermission(
+                              row.id,
+                              v as 'read-write' | 'reader'
+                            );
+                          }
+                        }
                       "
                     >
                       <SelectTrigger
@@ -618,7 +623,6 @@ const handleCancelAddPeople = () => {
                           v-if="!(row.kind === 'permission' && row.isMe)"
                           value="__remove__"
                           class="text-destructive"
-                          @click.prevent="handleRemovePermission(row.id)"
                         >
                           Remove access
                         </SelectItem>
