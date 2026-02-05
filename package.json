@@ -36,7 +36,7 @@
     "lodash.debounce": "^4.0.8",
     "lucide-vue-next": "^0.548.0",
     "pinia": "^3.0.4",
-    "primitive-app": "^2.1.1",
+    "primitive-app": "^2.1.2",
     "reka-ui": "^2.7.0",
     "shadcn-vue": "^2.3.3",
     "tailwind-merge": "^3.4.0",
