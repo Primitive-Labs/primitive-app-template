@@ -28,7 +28,7 @@ If you prefer, you can also install pnpm using other methods described in the [p
 The `primitive-admin` CLI tool provides command-line access to the Primitive Admin server for managing your app. Install it globally:
 
 ```bash
-npm install -g primitive-admin
+pnpm install -g primitive-admin
 ```
 
 Once installed, authenticate with your Primitive account:
