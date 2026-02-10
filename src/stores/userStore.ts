@@ -1317,6 +1317,14 @@ export const useUserStore = defineStore("user", () => {
   const getAllPrefs = (): UserPrefsMap => ({ ...userPrefs.value });
 
   /**
+   * Re-query all UserPref objects from js-bao and refresh the in-memory cache.
+   * Useful when prefs may have been loaded before the root doc finished syncing.
+   */
+  const refreshPrefs = async (): Promise<void> => {
+    await loadUserPrefs();
+  };
+
+  /**
    * Delete all user preferences.
    *
    * @throws Error if user is not authenticated
@@ -1380,6 +1388,7 @@ export const useUserStore = defineStore("user", () => {
     setPref,
     deletePref,
     getAllPrefs,
+    refreshPrefs,
     clearAllPrefs,
   };
 });

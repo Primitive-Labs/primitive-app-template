@@ -420,11 +420,6 @@ export const useSingleDocumentStore = defineStore("singleDocument", () => {
     const persistLogger = logger.forScope("persistCurrentDocumentId");
     try {
       const userStore = useUserStore();
-      if (!userStore.isAuthenticated) {
-        persistLogger.debug("User not authenticated; skipping persistence");
-        return;
-      }
-
       await userStore.setPref(LAST_USED_DOC_PREF_KEY, documentId);
       persistLogger.debug("Saved current document ID to user preferences", {
         documentId,
@@ -439,15 +434,15 @@ export const useSingleDocumentStore = defineStore("singleDocument", () => {
     const openLogger = logger.forScope("tryOpenLastUsedDocument");
     try {
       const userStore = useUserStore();
-      if (!userStore.isAuthenticated) {
-        openLogger.debug("User not authenticated; skipping last used document");
-        return false;
-      }
+
+      // Refresh prefs from js-bao to avoid stale cache from root doc sync race
+      await userStore.refreshPrefs();
 
       const storedId = userStore.getPref<string | null>(
         LAST_USED_DOC_PREF_KEY,
         null
       );
+
       if (!storedId) {
         openLogger.debug("No last used document found in preferences");
         return false;
@@ -467,10 +462,6 @@ export const useSingleDocumentStore = defineStore("singleDocument", () => {
       });
       isReady.value = true;
 
-      openLogger.debug("Successfully opened last used document", {
-        storedId,
-        prefKey: LAST_USED_DOC_PREF_KEY,
-      });
       return true;
     } catch (error) {
       openLogger.warn("Last used document failed to open; clearing pref", {
