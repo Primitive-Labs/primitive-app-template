@@ -69,11 +69,17 @@ const secondaryNavItems = [
 ];
 
 // User menu items - customize this for your app
-const userMenuItems = computed<UserMenuItem[]>(() => [
-  { id: "edit-profile", label: "Edit Profile", icon: Pencil },
-  { id: "manage-passkeys", label: "Manage Passkeys", icon: Key },
-  { id: "logout", label: "Log out", icon: LogOut, to: "/logout" },
-]);
+const userMenuItems = computed<UserMenuItem[]>(() => {
+  const items: UserMenuItem[] = [
+    { id: "edit-profile", label: "Edit Profile", icon: Pencil },
+  ];
+  // Only show passkey management if passkeys are enabled for this app
+  if (userStore.authConfig?.hasPasskey) {
+    items.push({ id: "manage-passkeys", label: "Manage Passkeys", icon: Key });
+  }
+  items.push({ id: "logout", label: "Log out", icon: LogOut, to: "/logout" });
+  return items;
+});
 
 function handleNavClick(): void {
   emit("navigate");

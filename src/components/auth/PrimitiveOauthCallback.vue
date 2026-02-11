@@ -392,6 +392,9 @@ async function checkShouldPromptPasskey(
   if (!props.promptForPasskey) return false;
   if (!authConfig.value?.hasPasskey) return false;
 
+  // Only prompt new users - returning users who skipped won't be prompted again
+  if (!isNewUser.value) return false;
+
   // If the server explicitly says to prompt
   if (promptAddPasskey) return true;
 

@@ -41,10 +41,16 @@ const mobileUserInfo = computed<UserTabUserInfo>(() => ({
   avatarUrl: userStore.currentUser?.avatarUrl ?? undefined,
 }));
 
-const mobileMenuItems: UserTabMenuItem[] = [
-  { id: "edit-profile", label: "Edit Profile", icon: User },
-  { id: "passkey-management", label: "Manage Passkeys", icon: Key },
-];
+const mobileMenuItems = computed<UserTabMenuItem[]>(() => {
+  const items: UserTabMenuItem[] = [
+    { id: "edit-profile", label: "Edit Profile", icon: User },
+  ];
+  // Only show passkey management if passkeys are enabled for this app
+  if (userStore.authConfig?.hasPasskey) {
+    items.push({ id: "passkey-management", label: "Manage Passkeys", icon: Key });
+  }
+  return items;
+});
 
 function handleMobileMenuItemClick(itemId: string): void {
   if (itemId === "edit-profile") {
