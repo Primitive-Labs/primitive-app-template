@@ -47,7 +47,11 @@ const mobileMenuItems = computed<UserTabMenuItem[]>(() => {
   ];
   // Only show passkey management if passkeys are enabled for this app
   if (userStore.authConfig?.hasPasskey) {
-    items.push({ id: "passkey-management", label: "Manage Passkeys", icon: Key });
+    items.push({
+      id: "passkey-management",
+      label: "Manage Passkeys",
+      icon: Key,
+    });
   }
   return items;
 });
