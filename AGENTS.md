@@ -48,7 +48,8 @@
 
 ## Using Primitive-app
 
-- Primitive-app (the library) provides: jsBaoClientService for initializing js-bao, dev tools (test harness, document explorer), and shared UI components (PrimitiveLoadingGate, PrimitiveLogoSpinner, DeleteConfirmationDialog).
+- Primitive-app (the library) provides: jsBaoClientService for initializing js-bao, dev tools (test harness, document explorer), and logging utilities (setPrimitiveAppLogLevel).
+- This template includes shared UI components in `/src/components/shared/` (PrimitiveLoadingGate, PrimitiveLogoSpinner, DeleteConfirmationDialog, etc.) that you can customize for your app.
 - This project includes additional Pinia stores (in `/src/stores`) and document components (in `/src/components/documents`) that may be helpful in implementing common use patterns. They can be used as is, customized as needed, or removed in favor of application specific code.
 - Refer to the Primitive Docs and guidelines in @./node_modules/js-bao/README.md and @./node_modules/js-bao-wss-client/README.md for additional context on using these libraries.
 - The `primitive-admin` CLI tool (accessible via the `primitive` command) provides command-line integration with the Primitive Admin server for managing apps, users, and other admin tasks.
