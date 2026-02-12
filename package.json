@@ -8,7 +8,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "pnpm codegen && node scripts/dev-launch.mjs",
+    "dev": "pnpm codegen && vite",
     "build": "pnpm codegen && run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "clean": "rm -rf dist && pnpm clean-modules",
