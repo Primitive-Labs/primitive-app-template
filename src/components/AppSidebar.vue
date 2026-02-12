@@ -11,6 +11,9 @@
  * Apps can customize navigation items, menu actions, and styling.
  */
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
+import PrimitiveUserMenu, {
+  type UserMenuItem,
+} from "@/components/shared/PrimitiveUserMenu.vue";
 import {
   Sidebar,
   SidebarContent,
@@ -24,11 +27,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import PrimitiveUserMenu, {
-  type UserMenuItem,
-} from "@/components/shared/PrimitiveUserMenu.vue";
 import { useUserStore } from "@/stores/userStore";
+import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -121,7 +121,6 @@ function handleUserMenuItemClick(itemId: string): void {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-
     </SidebarContent>
 
     <!-- User menu at bottom -->
