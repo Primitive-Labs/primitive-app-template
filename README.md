@@ -8,89 +8,53 @@ For guides and API reference docs, see **Primitive Docs**: https://primitive-lab
 
 ## Quick Start
 
-### 1. Create a New Repository from Template
+### 1. Create Your App
 
-Navigate to this [template repository](https://github.com/Primitive-Labs/primitive-app-template) on Github and click the **"Use this template"** green button in the upper right. This will copy all the files to a new repository for your project.
-
-### 2. Install pnpm
-
-This project uses [pnpm](https://pnpm.io/) as its package manager. The easiest way to install pnpm is using [Corepack](https://nodejs.org/api/corepack.html), which is included with Node.js 16+:
+Run the following command, replacing `my-app` with your desired app name:
 
 ```bash
-corepack enable
-corepack prepare pnpm@latest --activate
+npx create-primitive-app my-app
 ```
 
-If you prefer, you can also install pnpm using other methods described in the [pnpm installation guide](https://pnpm.io/installation).
+This will:
+- Prompt you to sign in to your Primitive account (if not already authenticated)
+- Create a new app on the Primitive servers
+- Download and configure the template
+- Install dependencies (prompting to install pnpm if needed)
 
-### 3. Install the Primitive CLI
-
-The `primitive-admin` CLI tool provides command-line access to the Primitive Admin server for managing your app. Install it globally:
-
-```bash
-pnpm install -g primitive-admin
-```
-
-Once installed, authenticate with your Primitive account:
+### 2. Start Developing!
 
 ```bash
-primitive login
-```
-
-This will open a browser window for you to sign in. After signing in, you can verify your authentication:
-
-```bash
-primitive whoami
-```
-
-### 4. Clone Your New Repository
-
-```bash
-git clone https://github.com/your-username/my-new-app.git
-cd my-new-app
-```
-
-### 5. Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 6. Create a Primitive App
-
-You need to create an app in the Primitive Admin system to get an **App ID** for your project.
-
-**Option A: Using the CLI**
-
-```bash
-primitive apps create "My New App"
-```
-
-This will output your new **App ID**. You can also list your apps at any time:
-
-```bash
-primitive apps list
-```
-
-**Option B: Using the Dashboard**
-
-Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and create a new app through the web interface.
-
-Make note of your **App ID** for the next step.
-
-### 7. Configure Environment
-
-Edit `.env` and update the `VITE_APP_ID` to match the **App ID** you created in step 6.
-
-### 8. Start Developing!
-
-You can start the dev server with
-
-```bash
+cd my-app
 pnpm dev
 ```
 
 Visit `http://localhost:5173` to see your app running.
+
+## Optional: Set Up Git Repository
+
+After creating your app, you may want to track it in Git and push to a remote repository:
+
+### Initialize Git (if not already done)
+
+```bash
+cd my-app
+git init
+git add .
+git commit -m "Initial commit from primitive-app template"
+```
+
+### Push to GitHub
+
+1. Create a new repository on [GitHub](https://github.com/new) (don't initialize with README, .gitignore, or license)
+
+2. Add the remote and push:
+
+```bash
+git remote add origin https://github.com/your-username/my-app.git
+git branch -M main
+git push -u origin main
+```
 
 ## Setting Up Google Sign In
 
@@ -106,6 +70,21 @@ Go to the [Google Cloud Console OAuth page](https://console.cloud.google.com/aut
 Make note of your **Client ID** and **Client Secret**.
 
 ### 2. Enable Google OAuth in Primitive Admin
+
+**Option A: Using the CLI**
+
+```bash
+primitive apps oauth set-google --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
+```
+
+Then add your allowed origins and callback URLs:
+
+```bash
+primitive apps origins add http://localhost:5173
+primitive apps origins add https://your-production-domain.com
+```
+
+**Option B: Using the Dashboard**
 
 Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and navigate to your app's settings:
 
@@ -156,11 +135,26 @@ VITE_OAUTH_REDIRECT_URI=https://my-app-prod.your-subdomain.workers.dev/oauth/cal
 
 ### 4. Configure Production URL in Primitive Admin
 
-Before deploying, make sure your app is configured with the production deployment URL in the [Primitive Admin console](https://admin.primitiveapi.com/login):
+Before deploying, make sure your app is configured with the production deployment URL.
 
-1. Navigate to your app's settings
-2. Add your production URL (e.g., `https://my-app-prod.your-subdomain.workers.dev` or your custom domain) to the allowed origins
-3. If using Google OAuth, also update the OAuth callback URL to match your production domain
+**Option A: Using the CLI**
+
+```bash
+primitive apps origins add https://my-app-prod.your-subdomain.workers.dev
+```
+
+Or if using a custom domain:
+
+```bash
+primitive apps origins add https://your-domain.com
+```
+
+**Option B: Using the Dashboard**
+
+Go to the [Primitive Admin console](https://admin.primitiveapi.com/login) and navigate to your app's settings:
+
+1. Add your production URL (e.g., `https://my-app-prod.your-subdomain.workers.dev` or your custom domain) to the allowed origins
+2. If using Google OAuth, also update the OAuth callback URL to match your production domain
 
 ### 5. Deploy
 
