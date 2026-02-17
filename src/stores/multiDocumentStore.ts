@@ -182,8 +182,11 @@ export const useMultiDocumentStore = defineStore("multiDocument", () => {
       collection
     );
 
-    // Set up documents watcher if this is the first collection
+    // Initialize jsBaoDocumentsStore and set up watcher if this is the first collection
     if (registeredCollections.value.size === 1) {
+      const documentsStore = useJsBaoDocumentsStore();
+      await documentsStore.initialize();
+      regLogger.debug("jsBaoDocumentsStore initialized");
       setupDocumentsWatcher();
     }
 

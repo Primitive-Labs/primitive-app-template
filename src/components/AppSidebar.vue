@@ -11,6 +11,9 @@
  * Apps can customize navigation items, menu actions, and styling.
  */
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
+import PrimitiveUserMenu, {
+  type UserMenuItem,
+} from "@/components/shared/PrimitiveUserMenu.vue";
 import {
   Sidebar,
   SidebarContent,
@@ -24,11 +27,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Bug, Home, Key, LogOut, Pencil } from "lucide-vue-next";
-import PrimitiveUserMenu, {
-  type UserMenuItem,
-} from "@/components/shared/PrimitiveUserMenu.vue";
 import { useUserStore } from "@/stores/userStore";
+import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -58,22 +58,18 @@ const { isMobile } = useSidebar();
 // Navigation items - customize this for your app
 const navItems = [{ name: "home", label: "Home", icon: Home, path: "/" }];
 
-// Secondary navigation items (shown at bottom, desktop only, admin only)
-const secondaryNavItems = [
-  {
-    name: "debug",
-    label: "Debug Suite (Admin only)",
-    icon: Bug,
-    path: "/debug",
-  },
-];
-
 // User menu items - customize this for your app
-const userMenuItems = computed<UserMenuItem[]>(() => [
-  { id: "edit-profile", label: "Edit Profile", icon: Pencil },
-  { id: "manage-passkeys", label: "Manage Passkeys", icon: Key },
-  { id: "logout", label: "Log out", icon: LogOut, to: "/logout" },
-]);
+const userMenuItems = computed<UserMenuItem[]>(() => {
+  const items: UserMenuItem[] = [
+    { id: "edit-profile", label: "Edit Profile", icon: Pencil },
+  ];
+  // Only show passkey management if passkeys are enabled for this app
+  if (userStore.authConfig?.hasPasskey) {
+    items.push({ id: "manage-passkeys", label: "Manage Passkeys", icon: Key });
+  }
+  items.push({ id: "logout", label: "Log out", icon: LogOut, to: "/logout" });
+  return items;
+});
 
 function handleNavClick(): void {
   emit("navigate");
@@ -115,25 +111,6 @@ function handleUserMenuItemClick(itemId: string): void {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in navItems" :key="item.name">
-              <SidebarMenuButton as-child :is-active="route.path === item.path">
-                <RouterLink :to="item.path" @click="handleNavClick">
-                  <component :is="item.icon" />
-                  <span>{{ item.label }}</span>
-                </RouterLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-
-      <!-- Spacer to push secondary nav to bottom -->
-      <div class="flex-1" />
-
-      <!-- Secondary navigation (desktop only, admin only) -->
-      <SidebarGroup v-if="!props.mobile && userStore.isAdmin">
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem v-for="item in secondaryNavItems" :key="item.name">
               <SidebarMenuButton as-child :is-active="route.path === item.path">
                 <RouterLink :to="item.path" @click="handleNavClick">
                   <component :is="item.icon" />

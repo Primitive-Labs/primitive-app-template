@@ -21,7 +21,10 @@ type ModelClass = {
 type MaybeRefBoolean = boolean | Ref<boolean> | ComputedRef<boolean>;
 type MaybeRefQuery<Q> = Q | null | Ref<Q | null> | ComputedRef<Q | null>;
 
-export interface UseJsBaoDataLoaderOptions<Data, Q = unknown> {
+export interface UseJsBaoDataLoaderOptions<
+  Data,
+  Q extends Record<string, unknown> = Record<string, unknown>,
+> {
   /**
    * Models to subscribe to for automatic reloads after the first successful load.
    * Each model is expected to expose a `subscribe(cb) => unsubscribe` API.
@@ -42,9 +45,9 @@ export interface UseJsBaoDataLoaderOptions<Data, Q = unknown> {
   documentReady: MaybeRefBoolean;
 
   /**
-   * The actual data loading function. Receives the current query params.
+   * The actual data loading function. Receives the current query params directly.
    */
-  loadData: (ctx: { queryParams: Q | null }) => Promise<Data>;
+  loadData: (queryParams: Q | null) => Promise<Data>;
 
   /**
    * Optional per-instance pause flag. While true, no loads or scheduled
@@ -130,9 +133,10 @@ function stableStringify(value: unknown): string {
  * @param options Configuration describing what to load, when to load, and what to watch.
  * @returns A `{ data, initialDataLoaded, reload }` bundle for consumption in components.
  */
-export function useJsBaoDataLoader<Data, Q = unknown>(
-  options: UseJsBaoDataLoaderOptions<Data, Q>
-): UseJsBaoDataLoaderResult<Data> {
+export function useJsBaoDataLoader<
+  Data,
+  Q extends Record<string, unknown> = Record<string, unknown>,
+>(options: UseJsBaoDataLoaderOptions<Data, Q>): UseJsBaoDataLoaderResult<Data> {
   const {
     subscribeTo,
     queryParams,
@@ -181,7 +185,7 @@ export function useJsBaoDataLoader<Data, Q = unknown>(
       queryParams: toRaw(queryValue.value),
     });
     try {
-      const result = await loadData({ queryParams: queryValue.value });
+      const result = await loadData(queryValue.value);
       data.value = result as Data;
       if (!initialDataLoaded.value) {
         initialDataLoaded.value = true;
