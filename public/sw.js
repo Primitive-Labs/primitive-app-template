@@ -1,5 +1,4 @@
-// Service Worker for js-bao blob proxying, adapted from js-bao-wss-client README
-const SW_VERSION = "fin-dash-sw-v1";
+const SW_VERSION = "sw-v1";
 
 function logError(context, error, extra) {
   const info = {
