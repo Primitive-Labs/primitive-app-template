@@ -3,9 +3,9 @@ import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
+import { primitiveDevTools } from "primitive-app/vite";
 import { defineConfig } from "vite";
 import vueDevTools from "vite-plugin-vue-devtools";
-import { primitiveDevTools } from "primitive-app/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -17,6 +17,7 @@ export default defineConfig({
     primitiveDevTools({
       appName: "Primitive Template App",
       testsDir: "src/tests",
+      keyboardShortcut: "cmd+shift+l",
     }),
   ],
   resolve: {
