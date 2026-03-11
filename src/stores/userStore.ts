@@ -121,6 +121,12 @@ let removeAuthFailed: (() => void) | null = null;
 let rootDocOpen = false;
 let rootDocumentId: string | null = null;
 let prefsUnsubscribe: (() => void) | null = null;
+// Ensures completeAuthentication() runs exactly once per login. The auth-success
+// event can fire synchronously during magicLinkVerify/handleOAuthCallback,
+// starting a concurrent call that races the explicit one. The guard serialises
+// them so that (1) authentication fully completes before the root document is
+// opened and (2) isAuthenticated is not set until prefs are loaded.
+let completeAuthPromise: Promise<void> | null = null;
 
 export const useUserStore = defineStore("user", () => {
   const logger = appBaseLogger.forScope("userStore");
@@ -1092,17 +1098,25 @@ export const useUserStore = defineStore("user", () => {
    * instead of directly manipulating isAuthenticated.
    */
   const completeAuthentication = async (): Promise<void> => {
-    const authLogger = logger.forScope("completeAuthentication");
-    authLogger.debug("Completing authentication flow");
+    if (completeAuthPromise) {
+      return completeAuthPromise;
+    }
 
-    // Initialize user data (profile + preferences) BEFORE setting
-    // isAuthenticated to ensure preferences are loaded before any watchers
-    // react to the authentication state change.
-    await onAuthentication();
+    completeAuthPromise = (async () => {
+      const authLogger = logger.forScope("completeAuthentication");
+      authLogger.debug("Completing authentication flow");
 
-    // Now safe to set authenticated state - all dependent data is ready
-    isAuthenticated.value = true;
-    authLogger.debug("Authentication complete, isAuthenticated set to true");
+      await onAuthentication();
+
+      isAuthenticated.value = true;
+      authLogger.debug("Authentication complete, isAuthenticated set to true");
+    })();
+
+    try {
+      await completeAuthPromise;
+    } finally {
+      completeAuthPromise = null;
+    }
   };
 
   /**
@@ -1148,6 +1162,7 @@ export const useUserStore = defineStore("user", () => {
         } catch {}
         removeAuthFailed = null;
       }
+      completeAuthPromise = null;
       initStarted = false;
     }
   };
