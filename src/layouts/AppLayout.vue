@@ -2,6 +2,10 @@
 /**
  * Main application layout with collapsible sidebar navigation.
  *
+ * Auth gate: all child content is gated on `userStore.isAuthenticated`. Components
+ * inside this layout can assume `currentUser` is always available. If auth is lost
+ * mid-session (e.g. token expiry), children unmount automatically.
+ *
  * Features:
  * - Desktop: Collapsible sidebar that can minimize to icons
  * - Mobile: Bottom tab bar navigation
@@ -10,6 +14,7 @@
  * This layout demonstrates a simple responsive pattern that apps can customize.
  */
 import AppSidebar from "@/components/AppSidebar.vue";
+import PrimitiveLogoSpinner from "@/components/shared/PrimitiveLogoSpinner.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
 import { Home, Key, User } from "lucide-vue-next";
@@ -137,7 +142,15 @@ onBeforeUnmount(() => {
       Update required: Click to refresh
     </div>
 
-    <div :class="{ 'pt-10': swDisconnected }">
+    <!-- Auth gate: child components only mount when authenticated, guaranteeing
+         currentUser is available. If auth is lost mid-session, children unmount. -->
+    <template v-if="!userStore.isAuthenticated">
+      <div class="min-h-screen flex items-center justify-center">
+        <PrimitiveLogoSpinner />
+      </div>
+    </template>
+
+    <div v-else :class="{ 'pt-10': swDisconnected }">
       <!-- Desktop: Collapsible sidebar with SidebarProvider -->
       <SidebarProvider v-if="!isMobile">
         <AppSidebar

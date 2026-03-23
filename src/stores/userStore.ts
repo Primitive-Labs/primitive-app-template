@@ -137,7 +137,15 @@ export const useUserStore = defineStore("user", () => {
   const currentUser = ref<UserProfile | null>(null);
 
   /**
-   * Whether the user is currently authenticated.
+   * Whether the user has a valid session right now.
+   *
+   * This is a live reactive signal, not a one-time gate — it can transition
+   * in both directions at any time after initialization:
+   * - `false → true`: returning user during initialize(), OAuth callback, magic link, passkey
+   * - `true → false`: session expiry (auth-failed event), explicit logout
+   *
+   * Components inside AppLayout can assume this is true (the layout gates on it).
+   * Components outside AppLayout should watch this reactively.
    */
   const isAuthenticated = ref(false);
 
@@ -147,7 +155,14 @@ export const useUserStore = defineStore("user", () => {
   const isOnline = ref(false);
 
   /**
-   * Whether the store has completed initialization.
+   * Whether the store has completed initialization (one-way: once true, stays true).
+   *
+   * After this is true, event listeners are registered, auth config is loaded,
+   * and the store's reactive state is meaningful. Does NOT imply the user is
+   * authenticated — check `isAuthenticated` for that.
+   *
+   * Used by the router guard to catch developer errors (navigating to protected
+   * routes before the store is ready).
    */
   const isInitialized = ref(false);
 
