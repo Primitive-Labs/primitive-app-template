@@ -8,6 +8,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import PrimitiveLogin from "@/components/auth/PrimitiveLogin.vue";
+import { config } from "@/config/envConfig";
 import { defineComponent, h, type Component } from "vue";
 
 // App icon component - uses size-full to fill parent container
@@ -118,7 +119,7 @@ const autoplayPlugin = Autoplay({
     <!-- Login form section -->
     <aside class="w-full lg:basis-5/12">
       <PrimitiveLogin
-        appName="Primitive Template App"
+        :appName="config.appName"
         defaultContinueRoute="home"
         emailAuthMethod="magic_link"
       >
@@ -130,7 +131,7 @@ const autoplayPlugin = Autoplay({
               >
                 <AppIcon class="size-6" />
               </div>
-              Primitive Template App
+              {{ config.appName }}
             </a>
           </div>
         </template>

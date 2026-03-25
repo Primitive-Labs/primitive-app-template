@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import { initializeJsBao, setPrimitiveAppLogLevel } from "primitive-app";
 import App from "./App.vue";
 import router from "./router/routes";
-import { getJsBaoConfig, getLogLevel } from "./config/envConfig";
+import { config, getJsBaoConfig, getLogLevel } from "./config/envConfig";
 import { useUserStore } from "./stores/userStore";
 import "./style.css";
 
@@ -22,6 +22,9 @@ async function bootstrap() {
   // Initialize user store (handles auth state)
   const userStore = useUserStore();
   await userStore.initialize();
+
+  // Set browser tab title from config
+  document.title = config.appName;
 
   // Install router and mount
   app.use(router);

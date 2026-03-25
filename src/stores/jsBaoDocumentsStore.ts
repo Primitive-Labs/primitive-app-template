@@ -533,7 +533,7 @@ export const useJsBaoDocumentsStore = defineStore("jsBaoDocuments", () => {
       } catch (commitError) {
         // commitOfflineCreate can fail if the document has already synced to the server.
         // This is fine - we just want to ensure it exists on the server somehow.
-        createLogger.warn(
+        createLogger.debug(
           "[STEP 3/6] commitOfflineCreate failed (continuing anyway - document may already be synced)",
           {
             documentId: newId,
@@ -880,23 +880,23 @@ export const useJsBaoDocumentsStore = defineStore("jsBaoDocuments", () => {
    *
    * @param documentId - The document ID to delete
    * @param options - Optional deletion options
-   * @param options.force - Force delete even if document has collaborators
+   * @param options.forceCloseIfOpen - Auto-close the document before deleting if it's open (default: true)
    */
   const deleteDocument = async (
     documentId: string,
-    options?: { force?: boolean }
+    options?: { forceCloseIfOpen?: boolean }
   ): Promise<void> => {
     const deleteLogger = logger.forScope("deleteDocument");
     try {
       deleteLogger.debug("Deleting document", {
         documentId,
-        force: options?.force,
+        forceCloseIfOpen: options?.forceCloseIfOpen,
       });
       const jsBaoClient = await jsBaoClientService.getClientAsync();
 
-      // Cast to any to pass force option - types may not be updated yet
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (jsBaoClient.documents.delete as any)(documentId, options);
+      await jsBaoClient.documents.delete(documentId, {
+        forceCloseIfOpen: options?.forceCloseIfOpen ?? true,
+      });
 
       // Immediately remove from list for responsive UI
       removeDocumentFromList(documentId);

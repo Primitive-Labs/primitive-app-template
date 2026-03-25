@@ -5,6 +5,7 @@ import type { LogLevel } from "@/lib/logger";
 
 // Raw environment-derived config shared between router, js-bao, and logging
 export const config = {
+  appName: import.meta.env.VITE_APP_NAME ?? "Primitive Template App",
   appId: import.meta.env.VITE_APP_ID,
   apiUrl: import.meta.env.VITE_API_URL,
   wsUrl: import.meta.env.VITE_WS_URL,

@@ -328,7 +328,7 @@ const handleDelete = async (docId: string) => {
   try {
     logger.debug("Deleting document", { documentId: docId });
     const client = await jsBaoClientService.getClientAsync();
-    await client.documents.delete(docId);
+    await client.documents.delete(docId, { forceCloseIfOpen: true });
     // Remove from local list
     documents.value = documents.value.filter((doc) => doc.documentId !== docId);
     deleteDocId.value = null;
