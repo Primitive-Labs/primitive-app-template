@@ -757,99 +757,6 @@ export const useJsBaoDocumentsStore = defineStore("jsBaoDocuments", () => {
   };
 
   /**
-   * Ensure a document exists for the given alias.
-   * If a document with the alias already exists, returns its ID (and ensures it has the specified tags).
-   * If not, creates a new document with the alias and returns the new ID.
-   *
-   * @param title - The document title (used if creating a new document)
-   * @param alias - Alias configuration with scope ('user' or 'app') and aliasKey
-   * @param tags - Optional array of tags to apply to the document
-   * @returns The document ID (existing or newly created)
-   */
-  const ensureDocWithAlias = async (
-    title: string,
-    alias: { scope: "user" | "app"; aliasKey: string },
-    tags?: string[]
-  ): Promise<string> => {
-    const ensureLogger = logger.forScope("ensureDocWithAlias");
-    try {
-      ensureLogger.debug("Ensuring document with alias exists", {
-        title,
-        alias,
-        tags,
-      });
-      const jsBaoClient = await jsBaoClientService.getClientAsync();
-
-      // Try to resolve the alias to see if document already exists
-      const existingAlias = await jsBaoClient.documents.aliases.resolve({
-        scope: alias.scope,
-        aliasKey: alias.aliasKey,
-      });
-
-      if (existingAlias && existingAlias.documentId) {
-        ensureLogger.debug("Document with alias already exists", {
-          documentId: existingAlias.documentId,
-          alias,
-        });
-
-        // If tags were requested, ensure the existing document has them
-        if (tags && tags.length > 0) {
-          const existingDoc = documents.value.find(
-            (d) => d.documentId === existingAlias.documentId
-          );
-          const existingTags = existingDoc?.tags ?? [];
-          let addedAnyTags = false;
-
-          for (const tag of tags) {
-            if (!existingTags.includes(tag)) {
-              try {
-                await jsBaoClient.documents.addTag(
-                  existingAlias.documentId,
-                  tag
-                );
-                addedAnyTags = true;
-                ensureLogger.debug("Added missing tag to existing document", {
-                  documentId: existingAlias.documentId,
-                  tag,
-                });
-              } catch (tagError) {
-                ensureLogger.warn("Failed to add tag to existing document", {
-                  documentId: existingAlias.documentId,
-                  tag,
-                  error: tagError,
-                });
-              }
-            }
-          }
-
-          // Refresh document metadata from local storage to pick up new tags
-          if (addedAnyTags) {
-            await ensureDocumentInList(existingAlias.documentId);
-          }
-        }
-
-        return existingAlias.documentId;
-      }
-
-      // Alias doesn't exist, create the document with alias
-      ensureLogger.debug("Alias not found, creating new document", {
-        title,
-        alias,
-        tags,
-      });
-      const { documentId } = await createDocumentWithAlias(title, alias, tags);
-      ensureLogger.debug("Created new document with alias", {
-        documentId,
-        alias,
-      });
-      return documentId;
-    } catch (error) {
-      ensureLogger.error("Failed to ensure document with alias", error);
-      throw error;
-    }
-  };
-
-  /**
    * Rename a document.
    *
    * @param documentId - The document ID
@@ -1363,7 +1270,6 @@ export const useJsBaoDocumentsStore = defineStore("jsBaoDocuments", () => {
     closeDocument,
     createDocument,
     createDocumentWithAlias,
-    ensureDocWithAlias,
     renameDocument,
     deleteDocument,
     shareDocument,

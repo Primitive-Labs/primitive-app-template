@@ -478,91 +478,30 @@ export const useSingleDocumentStore = defineStore("singleDocument", () => {
     }
   };
 
-  const resolveUserDefaultAlias = async (): Promise<string | null> => {
-    try {
-      logger.debug("alias:resolve:start", {
-        scope: "user",
-        aliasKey: "default-doc",
-      });
-      const jsBaoClient = await jsBaoClientService.getClientAsync();
-      const res = await jsBaoClient.documents.aliases.resolve({
-        scope: "user",
-        aliasKey: "default-doc",
-      });
-      const resolvedId: string | null = res?.documentId ?? null;
-      if (resolvedId) {
-        logger.debug("alias:resolve:ok", { documentId: resolvedId });
-      } else {
-        logger.debug("alias:resolve:miss");
-      }
-      return resolvedId;
-    } catch (error) {
-      logger.error("alias:resolve:error", error);
-      throw error;
-    }
-  };
-
   const openDefaultDocumentViaAlias = async (title: string): Promise<void> => {
     const aliasLogger = logger.forScope("openDefaultDocumentViaAlias");
-    const documentsStore = useJsBaoDocumentsStore();
 
-    // 1) Resolve alias
-    const resolved = await resolveUserDefaultAlias();
-    if (resolved) {
-      await setCurrentDocument(resolved);
-      aliasLogger.debug("isReady → true (default document opened via alias)", {
-        from: isReady.value,
-        to: true,
-        documentId: resolved,
-      });
-      isReady.value = true;
-      return;
-    }
-
-    // 2) Create + set alias atomically via jsBaoDocumentsStore
-    // This ensures the document is immediately added to the documents list
-    aliasLogger.debug("createWithAlias:start", {
+    // Use getOrCreateWithAlias to atomically resolve or create the default document.
+    // The server handles race conditions (e.g., multiple tabs creating simultaneously).
+    const jsBaoClient = await jsBaoClientService.getClientAsync();
+    const result = await jsBaoClient.documents.getOrCreateWithAlias({
       title,
-      scope: "user",
-      aliasKey: "default-doc",
+      alias: { scope: "user", aliasKey: "default-doc" },
     });
-    const { documentId: createdDocumentId } =
-      await documentsStore.createDocumentWithAlias(title, {
-        scope: "user",
-        aliasKey: "default-doc",
-      });
-    aliasLogger.debug("createWithAlias:ok", { createdDocumentId });
 
-    // 3) Resolve again to honor server authority
-    const resolvedAfterSet = await resolveUserDefaultAlias();
-    if (!resolvedAfterSet) {
-      throw new Error("Alias not found after set");
-    }
+    aliasLogger.debug("Default document resolved or created", {
+      documentId: result.documentId,
+      created: result.created,
+    });
 
-    if (resolvedAfterSet !== createdDocumentId) {
-      // Another creator/tab won the alias; delete our created doc
-      try {
-        aliasLogger.warn("alias:verify:mismatch → deleting created doc", {
-          createdDocumentId,
-          resolvedAfterSet,
-        });
-        await documentsStore.deleteDocument(createdDocumentId);
-      } catch (cleanupError) {
-        aliasLogger.warn("alias:verify:mismatch:cleanup:error", cleanupError);
-      }
-    } else {
-      aliasLogger.debug("alias:verify:match", {
-        documentId: createdDocumentId,
-      });
-    }
+    const documentId = result.documentId;
 
-    // 4) Open the authoritative alias target
-    await setCurrentDocument(resolvedAfterSet);
+    await setCurrentDocument(documentId);
 
-    aliasLogger.debug("isReady → true (default document created and opened)", {
+    aliasLogger.debug("isReady → true (default document opened via alias)", {
       from: isReady.value,
       to: true,
-      documentId: resolvedAfterSet,
+      documentId,
     });
     isReady.value = true;
   };
