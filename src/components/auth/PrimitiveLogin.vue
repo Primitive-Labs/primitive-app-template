@@ -9,6 +9,7 @@ import {
   browserSupportsWebAuthn,
   browserSupportsWebAuthnAutofill,
   startAuthentication,
+  WebAuthnAbortService,
 } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
 import {
@@ -120,7 +121,6 @@ const resendCooldown = ref(0);
 let resendTimer: ReturnType<typeof setInterval> | null = null;
 
 // Passkey conditional UI
-const passkeyAbortController = ref<AbortController | null>(null);
 const supportsPasskeyAutofill = ref(false);
 
 // Computed properties
@@ -305,11 +305,8 @@ async function handleEmailSubmit(): Promise<void> {
   const method = effectiveEmailAuthMethod.value;
   logger.debug("Submitting email", { email: email.value, method });
 
-  // Cancel any ongoing passkey conditional UI
-  if (passkeyAbortController.value) {
-    passkeyAbortController.value.abort();
-    passkeyAbortController.value = null;
-  }
+  // Cancel any ongoing passkey conditional UI (aborts the pending WebAuthn ceremony)
+  WebAuthnAbortService.cancelCeremony();
 
   if (method === "one_time_code") {
     await handleOtpRequest();
@@ -460,10 +457,7 @@ async function handleGoogleLogin(): Promise<void> {
     error.value = null;
 
     // Cancel any ongoing passkey conditional UI
-    if (passkeyAbortController.value) {
-      passkeyAbortController.value.abort();
-      passkeyAbortController.value = null;
-    }
+    WebAuthnAbortService.cancelCeremony();
 
     await user.login(continueUrl.value);
   } catch (e: unknown) {
@@ -501,9 +495,6 @@ async function startPasskeyConditionalUI(): Promise<void> {
   logger.debug("Starting passkey conditional UI");
 
   try {
-    // Create abort controller for this authentication attempt
-    passkeyAbortController.value = new AbortController();
-
     // Get authentication options from server
     const { options, challengeToken } = await user.startPasskeyAuth();
 
@@ -584,10 +575,7 @@ watch(
 
 onUnmounted(() => {
   // Clean up passkey conditional UI
-  if (passkeyAbortController.value) {
-    passkeyAbortController.value.abort();
-    passkeyAbortController.value = null;
-  }
+  WebAuthnAbortService.cancelCeremony();
   // Clean up OTP resend timer
   clearResendTimer();
 });
