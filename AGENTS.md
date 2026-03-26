@@ -27,5 +27,7 @@
 
 ## Using the Primitive Platform
 
+- The Primitive CLI (`primitive-admin` on npm) is required for working with the Primitive platform. Install it globally with `npm install -g primitive-admin`, then authenticate with `primitive login` and set your app context with `primitive use "App Name"`.
+- Before running any CLI commands, run `primitive whoami` to confirm the authenticated user, app ID, and server endpoint match the current project. Check `.env` / `.env.local` / `.env.development` for `PRIMITIVE_API_URL` or app ID settings and make sure they align.
 - ALWAYS refer to the Primitive CLI guides before writing code that uses js-bao, js-bao-wss-client, or primitive-app. Run `primitive guides list` to see available topics and `primitive guides get <topic>` to retrieve a specific guide.
-- If using Claude Code, the `primitive-platform` skill automates this workflow — it fetches the relevant guides and validates your code against them.
+- If using Claude Code, the `primitive-platform` skill automates this workflow it fetches the relevant guides and validates your code against them. Install it into the user's list of skills with `primitive skill install`.
