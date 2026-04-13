@@ -32,8 +32,9 @@
  * // Create a new document in the collection
  * const newProject = await multiDoc.createDocument('projects', 'My Project');
  *
- * // Check collection readiness
+ * // Check collection readiness (returns ComputedRef<boolean>)
  * const isReady = multiDoc.isCollectionReady('projects');
+ * console.log(isReady.value); // one-shot check
  * ```
  *
  * ## Configuration
@@ -287,20 +288,15 @@ export const useMultiDocumentStore = defineStore("multiDocument", () => {
   }
 
   /**
-   * Check if a collection is ready.
+   * Get a reactive ref for whether a collection is ready.
    * A collection is ready when there are no pending document operations
    * (all opens/closes from registration or document changes have completed).
+   *
+   * Returns a ComputedRef so it can be used reactively in watchers, computeds,
+   * and passed to composables like useJsBaoDataLoader's documentReady option.
+   * For one-shot checks, use `.value`.
    */
-  function isCollectionReady(name: string): boolean {
-    const collection = registeredCollections.value.get(name);
-    return collection?.isReady ?? false;
-  }
-
-  /**
-   * Get a reactive ref for a collection's readiness.
-   * Returns true when there are no pending document operations.
-   */
-  function getCollectionReadyRef(name: string): ComputedRef<boolean> {
+  function isCollectionReady(name: string): ComputedRef<boolean> {
     return computed(() => {
       const collection = registeredCollections.value.get(name);
       return collection?.isReady ?? false;
@@ -434,17 +430,12 @@ export const useMultiDocumentStore = defineStore("multiDocument", () => {
   // -------------------------------------------------------------------------
 
   /**
-   * Check if a specific document is open and ready.
+   * Get a reactive ref for whether a specific document is open and ready.
+   *
+   * Accepts a reactive document ID ref so the computed updates when the
+   * selected document changes. For one-shot checks, use `.value`.
    */
-  function isDocumentReady(documentId: string): boolean {
-    const documentsStore = useJsBaoDocumentsStore();
-    return documentsStore.openDocumentIds.has(documentId);
-  }
-
-  /**
-   * Get a computed ref that tracks whether a specific document is ready.
-   */
-  function getDocumentReadyRef(
+  function isDocumentReady(
     documentIdRef: Ref<string> | ComputedRef<string>
   ): ComputedRef<boolean> {
     const documentsStore = useJsBaoDocumentsStore();
@@ -995,9 +986,7 @@ export const useMultiDocumentStore = defineStore("multiDocument", () => {
     getCollection,
     isCollectionRegistered,
     isCollectionReady,
-    getCollectionReadyRef,
     isDocumentReady,
-    getDocumentReadyRef,
 
     // actions
     registerCollection,
