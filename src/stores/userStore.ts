@@ -18,6 +18,10 @@ import { AUTH_CODES, AuthError } from "js-bao-wss-client";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useTheme } from "../composables/useTheme";
+import {
+  clearPendingInviteToken,
+  getPendingInviteToken,
+} from "../lib/inviteToken";
 import { appBaseLogger } from "../lib/logger";
 import { UserPref } from "../models/UserPref";
 import { jsBaoClientService } from "primitive-app";
@@ -295,7 +299,8 @@ export const useUserStore = defineStore("user", () => {
     const client = await jsBaoClientService.getClientAsync();
     const hasOAuth = await client.checkOAuthAvailable();
     if (!hasOAuth) throw new Error("OAuth is not available");
-    await client.startOAuthFlow(continueURL);
+    const inviteToken = getPendingInviteToken() ?? undefined;
+    await client.startOAuthFlow(continueURL, { inviteToken });
   };
 
   /**
@@ -357,6 +362,15 @@ export const useUserStore = defineStore("user", () => {
         }
         if (stateObj?.email) {
           emailFromState = stateObj.email;
+        }
+        // The magic link may have been opened in a different tab/browser, in
+        // which case sessionStorage is empty. Restore the inviteToken from
+        // state so the verify call can thread it through to the server.
+        if (stateObj?.inviteToken && !getPendingInviteToken()) {
+          sessionStorage.setItem(
+            "primitive:pendingInviteToken",
+            stateObj.inviteToken
+          );
         }
         callbackLogger.debug("Parsed state", stateObj);
       } catch (e: unknown) {
@@ -474,12 +488,14 @@ export const useUserStore = defineStore("user", () => {
 
     try {
       const client = await jsBaoClientService.getClientAsync();
+      const inviteToken = getPendingInviteToken() ?? undefined;
       // Cast result to include isNewUser which is returned by the API but not yet in public types
-      const result = (await client.magicLinkVerify(token)) as {
+      const result = (await client.magicLinkVerify(token, { inviteToken })) as {
         user: { userId: string; email: string; name?: string };
         promptAddPasskey?: boolean;
         isNewUser?: boolean;
       };
+      if (inviteToken) clearPendingInviteToken();
 
       magicLogger.debug("Magic link verified successfully", {
         userId: result.user.userId,
@@ -603,7 +619,9 @@ export const useUserStore = defineStore("user", () => {
 
     try {
       const client = await jsBaoClientService.getClientAsync();
-      const result = await client.otpVerify(email, code);
+      const inviteToken = getPendingInviteToken() ?? undefined;
+      const result = await client.otpVerify(email, code, { inviteToken });
+      if (inviteToken) clearPendingInviteToken();
 
       otpLogger.debug("OTP verified successfully", {
         userId: result.user.userId,
@@ -704,11 +722,14 @@ export const useUserStore = defineStore("user", () => {
 
     try {
       const client = await jsBaoClientService.getClientAsync();
+      const inviteToken = getPendingInviteToken() ?? undefined;
       const result = await client.passkeyRegisterFinish(
         credential,
         challengeToken,
-        deviceName
+        deviceName,
+        { inviteToken }
       );
+      if (inviteToken) clearPendingInviteToken();
       passkeyLogger.debug("Passkey registered successfully");
       return result;
     } catch (err: unknown) {

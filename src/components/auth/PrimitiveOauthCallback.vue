@@ -20,6 +20,7 @@ import {
 import type { Component } from "vue";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { getPendingInviteToken } from "@/lib/inviteToken";
 import { appBaseLogger } from "@/lib/logger";
 import { buildRouteOrUrl, resolveRouteOrUrl } from "@/lib/routeOrUrl";
 import { isIOS } from "@/lib/utils";
@@ -658,11 +659,14 @@ async function handleResendLink(): Promise<void> {
     }
 
     // Encode state with email and continue URL (same as login page does)
-    // This allows the resend flow to work if this new link also expires
+    // This allows the resend flow to work if this new link also expires.
+    // inviteToken is included so a pending invitation survives the resend.
+    const inviteToken = getPendingInviteToken();
     const state = btoa(
       JSON.stringify({
         continueUrl: redirectTo.value,
         email: expiredLinkEmail.value,
+        ...(inviteToken ? { inviteToken } : {}),
       })
     );
     const separator = baseRedirectUri.includes("?") ? "&" : "?";

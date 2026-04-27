@@ -22,6 +22,7 @@ import {
 } from "lucide-vue-next";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { getPendingInviteToken } from "@/lib/inviteToken";
 import { appBaseLogger } from "@/lib/logger";
 import { isIOS } from "@/lib/utils";
 import { jsBaoClientService } from "primitive-app";
@@ -221,11 +222,15 @@ const magicLinkRedirectUri = computed(() => {
   }
 
   // Encode continue URL and email in state parameter (base64)
-  // Email is included so we can auto-resend if the link expires
+  // Email is included so we can auto-resend if the link expires.
+  // inviteToken is included so a pending invitation survives the
+  // cross-tab redirect when the user clicks the magic link in email.
+  const inviteToken = getPendingInviteToken();
   const state = btoa(
     JSON.stringify({
       continueUrl: continueUrl.value,
       email: email.value,
+      ...(inviteToken ? { inviteToken } : {}),
     })
   );
   const separator = callbackUrl.includes("?") ? "&" : "?";

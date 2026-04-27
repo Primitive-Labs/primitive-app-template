@@ -220,12 +220,12 @@ async function handleManageDocumentsClick(): Promise<void> {
 </script>
 
 <template>
-  <div class="pt-1 px-1">
+  <div class="pt-1 px-1 group-data-[collapsible=icon]:px-0">
     <DropdownMenu>
       <DropdownMenuTrigger as-child>
         <button
           type="button"
-          class="flex w-full items-center gap-2 rounded-md p-2 text-left hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+          class="flex w-full items-center gap-2 rounded-md p-2 text-left hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:mx-auto"
         >
           <component
             v-if="props.icon"
@@ -233,17 +233,19 @@ async function handleManageDocumentsClick(): Promise<void> {
             class="size-5 shrink-0"
           />
           <span
-            class="flex-1 text-left text-base font-medium leading-tight truncate"
+            class="flex-1 text-left text-base font-medium leading-tight truncate group-data-[collapsible=icon]:hidden"
           >
             {{ props.label }}
           </span>
           <span
             v-if="pendingInvitations.length > 0"
-            class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full shrink-0"
+            class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-blue-600 rounded-full shrink-0 group-data-[collapsible=icon]:hidden"
           >
             {{ pendingInvitations.length }}
           </span>
-          <ChevronDown class="ml-auto size-4" />
+          <ChevronDown
+            class="ml-auto size-4 group-data-[collapsible=icon]:hidden"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

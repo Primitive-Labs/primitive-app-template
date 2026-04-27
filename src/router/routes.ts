@@ -7,6 +7,7 @@ import { createPrimitiveRouter } from "@/router/primitiveRouter";
 import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
 import HomePage from "../pages/HomePage.vue";
+import InviteAcceptPage from "../pages/InviteAcceptPage.vue";
 import LoginPage from "../pages/LoginPage.vue";
 import NotFoundPage from "../pages/NotFoundPage.vue";
 
@@ -55,6 +56,20 @@ const routes: RouteRecordRaw[] = [
         props: {
           continueRoute: "home",
           loginRoute: "login",
+        },
+      },
+      {
+        path: "invite/accept",
+        name: "invite-accept",
+        component: InviteAcceptPage,
+        props: {
+          continueRoute: "home",
+          loginRoute: "login",
+        },
+        meta: {
+          primitiveRouterMeta: {
+            requireAuth: "none",
+          },
         },
       },
     ],
