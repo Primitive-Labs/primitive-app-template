@@ -23,7 +23,7 @@ import {
   getPendingInviteToken,
 } from "../lib/inviteToken";
 import { appBaseLogger } from "../lib/logger";
-import { UserPref } from "../models/UserPref";
+import { UserPref } from "../models";
 import { jsBaoClientService } from "primitive-app";
 export { AUTH_CODES, AuthError } from "js-bao-wss-client";
 export type { UserProfile } from "js-bao-wss-client";
@@ -184,6 +184,85 @@ export const useUserStore = defineStore("user", () => {
   const isAdmin = computed(() =>
     Boolean(isAuthenticated.value && currentUser.value?.appRole === "admin")
   );
+
+  /**
+   * Cached group memberships for the current user, indexed by groupType.
+   *
+   * Loading is non-blocking — `onAuthentication()` kicks it off but
+   * doesn't await it, so sign-in completes without an extra round-trip.
+   * The router awaits `whenMembershipsReady()` only when a route has an
+   * `authCheck` that may consult memberships. Routes without `authCheck`
+   * never pay the cost.
+   *
+   * The platform does not currently emit a membership-change event, so
+   * code that mutates the current user's group membership should call
+   * `refreshGroupMemberships()` after the change.
+   */
+  const groupMemberships = ref<Map<string, Set<string>>>(new Map());
+  const isMembershipsReady = ref(false);
+  let membershipsPromise: Promise<void> | null = null;
+
+  function isMemberOf(groupType: string, groupId: string): boolean {
+    return groupMemberships.value.get(groupType)?.has(groupId) ?? false;
+  }
+
+  function memberGroups(groupType: string): readonly string[] {
+    const set = groupMemberships.value.get(groupType);
+    return set ? Array.from(set) : [];
+  }
+
+  async function refreshGroupMemberships(): Promise<void> {
+    const refreshLogger = logger.forScope("refreshGroupMemberships");
+    if (!currentUser.value) {
+      groupMemberships.value = new Map();
+      isMembershipsReady.value = false;
+      membershipsPromise = null;
+      return;
+    }
+    const run = (async () => {
+      try {
+        const client = await jsBaoClientService.getClientAsync();
+        const memberships = await client.groups.listUserMemberships(
+          currentUser.value!.userId
+        );
+        const next = new Map<string, Set<string>>();
+        for (const m of memberships) {
+          let bucket = next.get(m.groupType);
+          if (!bucket) {
+            bucket = new Set();
+            next.set(m.groupType, bucket);
+          }
+          bucket.add(m.groupId);
+        }
+        groupMemberships.value = next;
+        refreshLogger.debug("Loaded memberships", {
+          groupTypes: next.size,
+          total: memberships.length,
+        });
+      } catch (err) {
+        refreshLogger.warn("Failed to load group memberships", err);
+      } finally {
+        isMembershipsReady.value = true;
+      }
+    })();
+    membershipsPromise = run;
+    await run;
+  }
+
+  /**
+   * Resolves once the current user's group memberships have been loaded
+   * at least once. Used by the router guard to defer `authCheck`
+   * evaluation if a navigation happens before the initial load finishes.
+   * Routes without an `authCheck` should not call this.
+   */
+  async function whenMembershipsReady(): Promise<void> {
+    if (isMembershipsReady.value) return;
+    if (membershipsPromise) {
+      await membershipsPromise;
+      return;
+    }
+    await refreshGroupMemberships();
+  }
 
   // ---------------------------------------------------------------------------
   // Initialization
@@ -1119,6 +1198,9 @@ export const useUserStore = defineStore("user", () => {
     } catch (e: unknown) {
       authLogger.warn("initializeUserPrefs error after authentication:", e);
     }
+
+    authLogger.debug("Kicking off group memberships load (non-blocking)");
+    void refreshGroupMemberships();
   };
 
   /**
@@ -1174,6 +1256,9 @@ export const useUserStore = defineStore("user", () => {
     } finally {
       isAuthenticated.value = false;
       currentUser.value = null;
+      groupMemberships.value = new Map();
+      isMembershipsReady.value = false;
+      membershipsPromise = null;
       cleanupPrefs();
 
       // Clear any user-applied theme classes from <html>
@@ -1452,6 +1537,14 @@ export const useUserStore = defineStore("user", () => {
 
     // getters
     isAdmin,
+
+    // group memberships (router authCheck + app gating)
+    groupMemberships,
+    isMembershipsReady,
+    isMemberOf,
+    memberGroups,
+    refreshGroupMemberships,
+    whenMembershipsReady,
 
     // actions
     initialize,

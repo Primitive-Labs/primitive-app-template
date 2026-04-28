@@ -23,7 +23,19 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
-  skipFormatting
+  skipFormatting,
+
+  // Generated model attribute files use the standard js-bao
+  // class/interface declaration-merging idiom. The pattern is intentional
+  // and the files are generated from `models.toml`, so silence the generic
+  // warning for those files only.
+  {
+    name: "primitive-app-template/generated-models",
+    files: ["src/models/*.generated.ts"],
+    rules: {
+      "@typescript-eslint/no-unsafe-declaration-merging": "off",
+    },
+  }
 );
 
 

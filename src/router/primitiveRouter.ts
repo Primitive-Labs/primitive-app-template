@@ -1,109 +1,115 @@
 /**
  * @module primitiveRouter
  *
- * Provides an opinionated Vue Router factory with built-in authentication guards.
+ * Vue Router factory with auth-aware routing built in.
  *
- * The `createPrimitiveRouter` function creates a Vue Router instance that automatically
- * enforces authentication requirements based on route metadata. Routes can declare their
- * auth requirements using the `primitiveRouterMeta` property in route meta.
+ * Each route declares two orthogonal things in
+ * `meta.primitiveRouterMeta`:
  *
- * ## Features
+ *   - `requireSignIn` — boolean. When true, an unauthenticated visitor
+ *     is redirected to the configured login route (with a `continueURL`
+ *     query param). Public routes set this to false.
+ *   - `authCheck` — optional predicate. Receives an `AuthContext` and
+ *     the destination route, returns either `true` (allow) or a
+ *     redirect target — a route name string or any vue-router
+ *     `RouteLocationRaw`.
  *
- * - **Auth Guards**: Automatically redirects unauthenticated users to login
- * - **Admin Routes**: Support for admin-only routes with automatic redirect
- * - **Login Redirect**: Configurable login route or external URL with continue URL support
+ * The two axes compose: a route can require sign-in, then run an
+ * additional check against the signed-in user (e.g. group membership,
+ * role, or a custom rule).
+ *
+ * `authCheck` only runs after the sign-in gate — it never sees an
+ * unauthenticated user. A predicate that throws is treated as a
+ * fail-closed denial and the user is sent to `homeRouteName`.
  */
 import { appBaseLogger } from "@/lib/logger";
 import { buildRouteOrUrl } from "@/lib/routeOrUrl";
 import { useUserStore } from "@/stores/userStore";
+import type { UserProfile } from "js-bao-wss-client";
 import {
   createRouter,
   createWebHistory,
+  type RouteLocationNormalized,
+  type RouteLocationRaw,
   type RouteRecordRaw,
   type Router,
   type RouterHistory,
 } from "vue-router";
 
 /**
- * Authorization level required for a route.
- *
- * - "none": route is public
- * - "member": authenticated user required
- * - "admin": authenticated user with admin privileges required
+ * Helpers passed to an `authCheck` predicate. The names mirror the CEL
+ * helpers used in database operation `access` rules so the same intent
+ * reads the same on client and server.
  */
-export type AuthLevel = "member" | "admin" | "none";
+export interface AuthContext {
+  /** The signed-in user. Never null inside an `authCheck` (which only runs after the sign-in gate). */
+  user: UserProfile;
+  /** True if the user is signed in. Always true inside `authCheck`. */
+  isMember: boolean;
+  /** True if the user has the `admin` app role. */
+  isAdmin: boolean;
+  /** Whether the user belongs to a specific group. */
+  isMemberOf(groupType: string, groupId: string): boolean;
+  /** All group IDs the user belongs to of a given type. */
+  memberGroups(groupType: string): readonly string[];
+  /** Whether the user has the given app role (e.g. "admin", "member"). */
+  hasRole(role: string): boolean;
+}
 
 /**
- * Shared route metadata used by the app router.
+ * `authCheck` returns either `true` (allow) or a redirect target. The
+ * redirect target follows vue-router's `RouteLocationRaw`, plus the
+ * shorthand of a bare string treated as a route name.
+ */
+export type AuthCheckResult = true | string | RouteLocationRaw;
+
+export type AuthCheck = (
+  ctx: AuthContext,
+  to: RouteLocationNormalized
+) => AuthCheckResult;
+
+/**
+ * Per-route metadata under `meta.primitiveRouterMeta`.
+ *
+ * `requireSignIn` is required so the intent for every route is
+ * explicit. Set it to `false` for public routes.
  */
 export interface PrimitiveRouterMeta {
-  /**
-   * Required authorization level for this route.
-   * Defaults to "none" when omitted.
-   */
-  requireAuth: AuthLevel;
+  /** True → unauthenticated users are redirected to login. */
+  requireSignIn: boolean;
+  /** Optional additional check, run only after the sign-in gate. */
+  authCheck?: AuthCheck;
 }
 
 export interface CreatePrimitiveRouterOptions {
-  /**
-   * The routes to install into the underlying Vue Router instance.
-   */
   routes: RouteRecordRaw[];
-
-  /**
-   * Optional custom history implementation. Defaults to
-   * `createWebHistory(BASE_URL || "/")` when omitted.
-   */
   history?: RouterHistory;
-  /**
-   * External URL to redirect unauthenticated users to.
-   *
-   * When provided, unauthenticated users will be redirected to this URL
-   * with a `continueURL` query parameter pointing back to the original
-   * destination.
-   */
+  /** External URL to redirect unauthenticated users to. */
   loginUrl?: string;
-
-  /**
-   * Named login route to redirect unauthenticated users to.
-   *
-   * When provided, unauthenticated users will be redirected to this
-   * route name with a `continueURL` query parameter in the querystring.
-   */
+  /** Named login route to redirect unauthenticated users to. */
   loginRouteName?: string;
-
-  /**
-   * Named home route to redirect non-admin users to when they attempt
-   * to access an admin-only route.
-   *
-   * When omitted, defaults to "home".
-   */
+  /** Fallback route for predicates that throw (defaults to `"home"`). */
   homeRouteName?: string;
 }
 
-/**
- * Create a Vue Router instance with opinionated auth guarding behavior
- * based on route metadata.
- *
- * Routes can opt into auth requirements by specifying:
- *
- * ```ts
- * meta: {
- *   primitiveRouterMeta: {
- *     requireAuth: "member" | "admin" | "none",
- *   },
- * }
- * ```
- *
- * For any route where `requireAuth` is "member" or "admin":
- * - The user store **must** be initialized before navigation. If not,
- *   this helper will throw a descriptive error.
- * - Unauthenticated users are redirected to the configured login
- *   route or URL, with a `continueURL` query parameter pointing back
- *   to the original destination.
- * - "admin" additionally requires `user.isAdmin === true`; failures
- *   are redirected to the configured `homeRouteName`.
- */
+function buildAuthContext(user: ReturnType<typeof useUserStore>): AuthContext {
+  if (!user.currentUser) {
+    throw new Error(
+      "[primitiveRouter] buildAuthContext called without a current user — this is a bug"
+    );
+  }
+  const profile = user.currentUser;
+  return {
+    user: profile,
+    isMember: true,
+    isAdmin: user.isAdmin,
+    isMemberOf: (groupType, groupId) =>
+      user.isMemberOf(groupType, groupId),
+    memberGroups: (groupType) => user.memberGroups(groupType),
+    hasRole: (role) => profile.appRole === role,
+  };
+}
+
 export function createPrimitiveRouter(
   options: CreatePrimitiveRouterOptions
 ): Router {
@@ -115,8 +121,6 @@ export function createPrimitiveRouter(
   const router = createRouter({
     history:
       options.history ??
-      // In Vite-powered apps, BASE_URL is injected at build time. For other
-      // consumers (e.g., tests or different tooling), fall back to "/".
       createWebHistory(
         typeof import.meta !== "undefined" &&
           typeof (import.meta as { env?: unknown }).env === "object" &&
@@ -127,18 +131,21 @@ export function createPrimitiveRouter(
     routes: options.routes,
   });
 
-  router.beforeEach((to) => {
+  router.beforeEach(async (to) => {
     const meta = to.meta.primitiveRouterMeta;
-    const required: AuthLevel = meta?.requireAuth ?? "none";
-
+    if (!meta) {
+      throw new Error(
+        `[primitiveRouter] Route "${String(to.name ?? to.fullPath)}" is missing meta.primitiveRouterMeta. ` +
+          `Every route must declare { requireSignIn: boolean }.`
+      );
+    }
+    const { requireSignIn, authCheck } = meta;
     const user = useUserStore();
 
     logger.debug("Evaluating route", {
-      to: {
-        name: to.name,
-        path: to.fullPath,
-      },
-      requiredAuth: required,
+      to: { name: to.name, path: to.fullPath },
+      requireSignIn,
+      hasAuthCheck: Boolean(authCheck),
       userState: {
         isInitialized: user.isInitialized,
         isAuthenticated: user.isAuthenticated,
@@ -146,72 +153,66 @@ export function createPrimitiveRouter(
       },
     });
 
-    // Public route
-    if (required === "none") {
-      logger.debug("Route is public; allowing navigation");
+    // Public route — bypass everything.
+    if (!requireSignIn && !authCheck) {
       return true;
     }
 
     if (!user.isInitialized) {
-      logger.debug(
-        "Protected route but userStore is not initialized; throwing error"
-      );
       throw new Error(
-        "[app] userStore must be initialized before navigating to protected routes. " +
-          "Call useUserStore().initialize() and await it before mounting the app or before navigating."
+        "[primitiveRouter] userStore must be initialized before navigating to protected routes. " +
+          "Call useUserStore().initialize() and await it before mounting the app."
       );
     }
 
-    // Member/admin required: enforce authentication
-    if (!user.isAuthenticated) {
-      // Allow navigation if we are already on the login route name
+    // Axis 1: sign-in gate.
+    if (requireSignIn && !user.isAuthenticated) {
       if ("routeName" in loginTarget && to.name === loginTarget.routeName) {
-        logger.debug(
-          "Unauthenticated user already on login route; allowing navigation"
-        );
         return true;
       }
-
       if ("routeName" in loginTarget) {
-        logger.debug("Unauthenticated user; redirecting to login route", {
-          targetRouteName: loginTarget.routeName,
-          redirectFrom: to.fullPath,
-        });
         return {
           name: loginTarget.routeName,
-          query: {
-            continueURL: to.fullPath,
-          },
+          query: { continueURL: to.fullPath },
         };
       }
-
       if (typeof window !== "undefined" && "url" in loginTarget) {
         const redirectUrl = new URL(loginTarget.url, window.location.origin);
         redirectUrl.searchParams.set("continueURL", to.fullPath);
-        logger.debug("Unauthenticated user; redirecting to login URL", {
-          targetUrl: redirectUrl.toString(),
-          redirectFrom: to.fullPath,
-        });
         window.location.href = redirectUrl.toString();
       }
-
-      // Abort current navigation; a full page reload may occur above
-      logger.debug("Navigation aborted after issuing login redirect");
       return false;
     }
 
-    // Admin-only route: enforce admin flag
-    if (required === "admin" && !user.isAdmin) {
-      logger.debug(
-        "Admin route requested but user is not admin; redirecting to home",
-        {
-          homeRouteName,
-        }
-      );
-      return { name: homeRouteName };
+    // Axis 2: authCheck. Only runs for authenticated users.
+    if (authCheck && user.isAuthenticated) {
+      // Memberships load in the background after sign-in. If a route
+      // wants to consult them, wait for the initial load before
+      // evaluating — otherwise predicates would see an empty cache.
+      // Routes without an authCheck never hit this path.
+      if (!user.isMembershipsReady) {
+        await user.whenMembershipsReady();
+      }
+      let result: AuthCheckResult;
+      try {
+        result = authCheck(buildAuthContext(user), to);
+      } catch (error) {
+        logger.error(
+          "authCheck threw; treating as fail-closed denial",
+          error
+        );
+        return { name: homeRouteName };
+      }
+      if (result === true) {
+        return true;
+      }
+      logger.debug("authCheck denied; redirecting", { result });
+      if (typeof result === "string") {
+        return { name: result };
+      }
+      return result;
     }
 
-    logger.debug("Access granted; continuing navigation");
     return true;
   });
 

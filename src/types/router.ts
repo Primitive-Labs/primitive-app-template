@@ -4,11 +4,9 @@ import type { PrimitiveRouterMeta } from "../router/primitiveRouter";
 declare module "vue-router" {
   interface RouteMeta {
     /**
-     * App-specific routing metadata.
-     *
-     * When omitted, the route is treated as public (equivalent to
-     * `{ requireAuth: "none" }`).
+     * App-specific routing metadata. Required on every route.
+     * See `primitiveRouter.ts` for the shape.
      */
-    primitiveRouterMeta?: PrimitiveRouterMeta;
+    primitiveRouterMeta: PrimitiveRouterMeta;
   }
 }

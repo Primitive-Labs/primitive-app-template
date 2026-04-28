@@ -1,10 +1,38 @@
-// Barrel file for all models - add new model exports here
-// When a new model is created, export it from this file to auto-register it
+// 🔥 AUTO-GENERATED FROM models.toml — DO NOT EDIT. 🔥
+// Run `pnpm models:gen` to regenerate.
+// fingerprint: 7075a833763f46c4
+//
+// Importing this barrel registers every model with js-bao as a side
+// effect (via `attachAndRegisterModel`). Apps should import models from
+// `@/models` rather than the per-model `*.generated` files so
+// registration runs exactly once.
 
-export { UserPref } from "./UserPref";
+import type { BaseModel } from "js-bao";
+import { attachAndRegisterModel, loadSchemaFromTomlString } from "js-bao";
+import modelsToml from "./models.toml?raw";
+import { UserPref } from "./UserPref.generated";
 
-// Import all model classes and export as an array for easy registration
-import { UserPref } from "./UserPref";
+export { UserPref } from "./UserPref.generated";
 
-// Add new models to this array as they are created
-export const allModels: unknown[] = [UserPref];
+const _modelPairs: ReadonlyArray<{
+  modelName: string;
+  class: typeof BaseModel;
+}> = [
+  { modelName: "user_prefs", class: UserPref },
+];
+
+const _schemasByName = Object.fromEntries(
+  loadSchemaFromTomlString(modelsToml).map((s) => [s.name, s])
+);
+
+for (const { modelName, class: ModelClass } of _modelPairs) {
+  const schema = _schemasByName[modelName];
+  if (!schema) {
+    throw new Error(
+      `Generated model ${ModelClass.name} expected TOML schema "${modelName}" — did models.toml change without re-running 'pnpm models:gen'?`
+    );
+  }
+  attachAndRegisterModel(ModelClass, schema);
+}
+
+export const allModels: unknown[] = _modelPairs.map((m) => m.class);

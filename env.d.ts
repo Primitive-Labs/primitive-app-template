@@ -27,4 +27,7 @@ declare module "*.png" {
   export default src;
 }
 
-
+declare module "*.toml?raw" {
+  const content: string;
+  export default content;
+}

@@ -15,6 +15,9 @@ const oauthCallbackPath = config.oauthRedirectUri
   ? new URL(config.oauthRedirectUri).pathname
   : "/oauth/callback";
 
+const signedIn = { primitiveRouterMeta: { requireSignIn: true } };
+const publicRoute = { primitiveRouterMeta: { requireSignIn: false } };
+
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
@@ -24,11 +27,7 @@ const routes: RouteRecordRaw[] = [
         path: "",
         name: "home",
         component: HomePage,
-        meta: {
-          primitiveRouterMeta: {
-            requireAuth: "member",
-          },
-        },
+        meta: signedIn,
       },
     ],
   },
@@ -40,37 +39,28 @@ const routes: RouteRecordRaw[] = [
         path: "login",
         name: "login",
         component: LoginPage,
+        meta: publicRoute,
       },
       {
         path: "logout",
         name: "logout",
         component: PrimitiveLogout,
-        props: {
-          continueRoute: "login",
-        },
+        props: { continueRoute: "login" },
+        meta: publicRoute,
       },
       {
         path: oauthCallbackPath,
         name: "oauth-callback",
         component: PrimitiveOauthCallback,
-        props: {
-          continueRoute: "home",
-          loginRoute: "login",
-        },
+        props: { continueRoute: "home", loginRoute: "login" },
+        meta: publicRoute,
       },
       {
         path: "invite/accept",
         name: "invite-accept",
         component: InviteAcceptPage,
-        props: {
-          continueRoute: "home",
-          loginRoute: "login",
-        },
-        meta: {
-          primitiveRouterMeta: {
-            requireAuth: "none",
-          },
-        },
+        props: { continueRoute: "home", loginRoute: "login" },
+        meta: publicRoute,
       },
     ],
   },
@@ -78,11 +68,7 @@ const routes: RouteRecordRaw[] = [
     path: "/:pathMatch(.*)*",
     name: "not-found",
     component: NotFoundPage,
-    meta: {
-      primitiveRouterMeta: {
-        requireAuth: "none",
-      },
-    },
+    meta: publicRoute,
   },
 ];
 
