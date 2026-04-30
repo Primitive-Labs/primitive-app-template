@@ -14,7 +14,7 @@
 - `/src/models`: JS-bao model file definitions.
 - `/src/pages`: Top level Vue components that map to a route.
 - `/src/router`: Vue-router configuration
-- `/src/stores`: Pinia stores (userStore, jsBaoDocumentsStore, singleDocumentStore, multiDocumentStore).
+- `/src/stores`: Pinia stores (userStore). The template ships only `userStore` for identity and user prefs. Document, sharing, and collection state should be managed by the app — call `client.documents.*`, `client.collections.*`, etc. directly or build a small store that suits your app's data model. The demo app under `primitive-app-demo` shows examples for each surface.
 - `/src/tests`: Tests registered with the primitive-app test harness.
 
 ## General Coding Guidelines
