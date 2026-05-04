@@ -103,8 +103,7 @@ function buildAuthContext(user: ReturnType<typeof useUserStore>): AuthContext {
     user: profile,
     isMember: true,
     isAdmin: user.isAdmin,
-    isMemberOf: (groupType, groupId) =>
-      user.isMemberOf(groupType, groupId),
+    isMemberOf: (groupType, groupId) => user.isMemberOf(groupType, groupId),
     memberGroups: (groupType) => user.memberGroups(groupType),
     hasRole: (role) => profile.appRole === role,
   };
@@ -197,10 +196,7 @@ export function createPrimitiveRouter(
       try {
         result = authCheck(buildAuthContext(user), to);
       } catch (error) {
-        logger.error(
-          "authCheck threw; treating as fail-closed denial",
-          error
-        );
+        logger.error("authCheck threw; treating as fail-closed denial", error);
         return { name: homeRouteName };
       }
       if (result === true) {

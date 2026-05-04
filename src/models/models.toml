@@ -18,6 +18,7 @@
 type = "id"
 auto_assign = true
 indexed = true
+required = true
 
 [models.user_prefs.fields.key]
 type = "string"

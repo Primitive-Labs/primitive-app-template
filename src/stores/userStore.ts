@@ -1342,7 +1342,7 @@ export const useUserStore = defineStore("user", () => {
           pref.value === undefined ||
           pref.value === "undefined"
         ) {
-          garbageKeys.push(pref.key);
+          garbageKeys.push(pref.key ?? "");
           continue;
         }
         try {
