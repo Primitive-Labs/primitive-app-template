@@ -21,7 +21,6 @@
 
 - ALWAYS Fail early. Don't mask missing required inputs with inline fallbacks or try to recover from errors caused by improper usage or bad input. Expose the errors directly.
 - ALWAYS use strong typing and invariants over scattered defensive code.
-- ALWAYS delete old code rather than comment it out or deprecate it. If removing code will be a breaking change, CONFIRM with the user how to handle it. Don't assume.
 - ALWAYS run pnpm codegen and pnpm type-check after making changes and fix any errors.
 - NEVER modify worker.js. This is a library provided file and should not be edited.
 

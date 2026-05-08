@@ -212,11 +212,10 @@ onMounted(handle);
     <div class="space-y-2">
       <h1 class="text-2xl font-semibold">You've been invited</h1>
       <p class="text-muted-foreground text-sm">
-        Sign in or create an account to accept your invitation. We'll connect it
-        to whichever account you use.
+        Sign in or create an account to accept your invitation.
       </p>
     </div>
-    <Button @click="goToLogin" class="w-full">Sign in to accept</Button>
+    <Button @click="goToLogin" class="w-full">Sign in or Sign Up</Button>
   </div>
 
   <!-- Confirm: signed in as X, accept with this account? -->
