@@ -26,8 +26,11 @@
 
 ## Using the Primitive Platform
 
-- The Primitive CLI (`primitive-admin` on npm) is required for working with the Primitive platform. Install it globally with `npm install -g primitive-admin`, then authenticate with `primitive login` and set your app context with `primitive use "App Name"`.
-- Before running any CLI commands, run `primitive whoami` to confirm the authenticated user, app ID, and server endpoint match the current project. Check `.env` / `.env.local` / `.env.development` for `PRIMITIVE_API_URL` or app ID settings and make sure they align.
+- The Primitive CLI (`primitive-admin` on npm) is required for working with the Primitive platform. Install it globally with `npm install -g primitive-admin`, then authenticate with `primitive login`.
+- This project uses **project mode**: a checked-in `.primitive/config.json` defines named environments (e.g. `dev`, `prod`), each binding an `apiUrl` and (optionally) an `appId` so "which server" and "which app" travel together. Per-environment tokens live in `.primitive/credentials.json` (gitignored).
+- If `.primitive/config.json` does not yet exist, create the first environment with `primitive env add dev --api-url <url> --app-id <appId>` (this auto-creates the config file). Repeat with different names (e.g. `prod`) to add more environments. Use `primitive env use <name>` to set the project's `defaultEnvironment`.
+- The active environment is resolved by precedence: `--env <name>` flag → `PRIMITIVE_ENV` env var → `defaultEnvironment` in config → the only env if exactly one is defined → otherwise error. There is no global "active app" in project mode — `primitive use` is a no-op when the env already pins an `appId`; switch apps by editing the config or passing `--env`/`--app`.
+- Before running any CLI commands, run `primitive whoami` to confirm the resolved environment, authenticated user, app ID, and server endpoint match the current project. Use `primitive env list` and `primitive env show [name]` to inspect, and `primitive env remove <name>` to delete an env (also clears its credential slot).
 - ALWAYS refer to the Primitive CLI guides before writing code that uses js-bao, js-bao-wss-client, or primitive-app. Run `primitive guides list` to see available topics and `primitive guides get <topic>` to retrieve a specific guide.
 - If using Claude Code, the `primitive-platform` skill automates this workflow it fetches the relevant guides and validates your code against them. Install it into the user's list of skills with `primitive skill install`.
 - If using Claude Code in this project, make sure the primitive-platform skill is loaded into your context before starting work.
