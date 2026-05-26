@@ -125,6 +125,14 @@ let removeAuthFailed: (() => void) | null = null;
 let rootDocOpen = false;
 let rootDocumentId: string | null = null;
 let prefsUnsubscribe: (() => void) | null = null;
+// De-duplicates concurrent loadAuthConfig() calls. Lazily fetched on first
+// access so we don't pay the round trip on cold loads where the user is
+// already authenticated and never sees the login UI.
+let authConfigPromise: Promise<void> | null = null;
+// Resolves after the initial prefs load (root doc opened + UserPref.query
+// completed). getPref/setPref/etc. await this so callers see consistent state
+// even when prefs are loaded in the background. Reset on logout.
+let prefsReadyPromise: Promise<void> | null = null;
 // Ensures completeAuthentication() runs exactly once per login. The auth-success
 // event can fire synchronously during magicLinkVerify/handleOAuthCallback,
 // starting a concurrent call that races the explicit one. The guard serialises
@@ -288,27 +296,10 @@ export const useUserStore = defineStore("user", () => {
       initLogger.debug("Initialization started");
       const client = await jsBaoClientService.getClientAsync();
 
-      // Fetch auth configuration
-      try {
-        const config = await client.getAuthConfig();
-        // Cast to include otpEnabled which is returned by server but not yet in client types
-        const configWithOtp = config as typeof config & {
-          otpEnabled?: boolean;
-        };
-        authConfig.value = {
-          appId: config.appId,
-          name: config.name,
-          mode: config.mode as "public" | "invite-only" | "domain",
-          waitlistEnabled: config.waitlistEnabled,
-          hasOAuth: config.hasOAuth,
-          hasPasskey: config.hasPasskey,
-          magicLinkEnabled: config.magicLinkEnabled ?? true,
-          otpEnabled: configWithOtp.otpEnabled ?? false,
-        };
-        initLogger.debug("Auth config loaded:", authConfig.value);
-      } catch (e: unknown) {
-        initLogger.warn("Failed to fetch auth config:", e);
-      }
+      // Auth config is loaded lazily on first read via loadAuthConfig().
+      // Pages that render the login UI call it explicitly; passive
+      // consumers (e.g., menu items) read `authConfig.value` and treat
+      // null as "feature unavailable until loaded".
 
       // Initialize authentication state
       const alreadyAuthenticated = client.isAuthenticated();
@@ -367,6 +358,47 @@ export const useUserStore = defineStore("user", () => {
   // ---------------------------------------------------------------------------
   // Auth: helpers and actions
   // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily fetch the app's auth configuration (OAuth providers, passkey
+   * support, magic-link / OTP availability, access mode).
+   *
+   * Called by login-related pages on mount. Other pages may call it if they
+   * need auth-config-derived UI (e.g., a "Manage Passkeys" menu item) —
+   * they should still null-guard `authConfig.value` because the load is async.
+   *
+   * Idempotent: concurrent callers share the same in-flight promise, and
+   * subsequent calls after a successful load return immediately.
+   */
+  const loadAuthConfig = async (): Promise<void> => {
+    if (authConfig.value !== null) return;
+    if (authConfigPromise) return authConfigPromise;
+    const cfgLogger = logger.forScope("loadAuthConfig");
+    authConfigPromise = (async () => {
+      try {
+        const client = await jsBaoClientService.getClientAsync();
+        const config = await client.getAuthConfig();
+        const configWithOtp = config as typeof config & {
+          otpEnabled?: boolean;
+        };
+        authConfig.value = {
+          appId: config.appId,
+          name: config.name,
+          mode: config.mode as "public" | "invite-only" | "domain",
+          waitlistEnabled: config.waitlistEnabled,
+          hasOAuth: config.hasOAuth,
+          hasPasskey: config.hasPasskey,
+          magicLinkEnabled: config.magicLinkEnabled ?? true,
+          otpEnabled: configWithOtp.otpEnabled ?? false,
+        };
+        cfgLogger.debug("Auth config loaded:", authConfig.value);
+      } catch (e: unknown) {
+        cfgLogger.warn("Failed to fetch auth config:", e);
+        authConfigPromise = null;
+      }
+    })();
+    return authConfigPromise;
+  };
 
   /**
    * Initiate the OAuth login flow.
@@ -1191,16 +1223,27 @@ export const useUserStore = defineStore("user", () => {
       authLogger.warn("Failed to fetch profile after authentication:", e);
     }
 
-    authLogger.debug("Authenticated; initializing user preferences...");
-    try {
-      await initializeUserPrefs();
-      authLogger.debug("User preferences initialized successfully");
-    } catch (e: unknown) {
-      authLogger.warn("initializeUserPrefs error after authentication:", e);
+    if (!prefsReadyPromise) {
+      prefsReadyPromise = initializeUserPrefs().catch((e: unknown) => {
+        authLogger.warn("initializeUserPrefs error after authentication:", e);
+      });
     }
 
     authLogger.debug("Kicking off group memberships load (non-blocking)");
     void refreshGroupMemberships();
+  };
+
+  /**
+   * Wait for the initial prefs load to complete. Used internally by getPref,
+   * setPref, etc. to ensure callers see a consistent prefs state, and by
+   * external callers that need a definitive read before proceeding.
+   */
+  const ensurePrefsReady = async (): Promise<void> => {
+    if (prefsReadyPromise) return prefsReadyPromise;
+    prefsReadyPromise = initializeUserPrefs().catch((e: unknown) => {
+      logger.forScope("ensurePrefsReady").warn("initializeUserPrefs error:", e);
+    });
+    return prefsReadyPromise;
   };
 
   /**
@@ -1259,6 +1302,9 @@ export const useUserStore = defineStore("user", () => {
       groupMemberships.value = new Map();
       isMembershipsReady.value = false;
       membershipsPromise = null;
+      authConfigPromise = null;
+      authConfig.value = null;
+      prefsReadyPromise = null;
       cleanupPrefs();
 
       // Clear any user-applied theme classes from <html>
@@ -1402,13 +1448,17 @@ export const useUserStore = defineStore("user", () => {
   };
 
   /**
-   * Get a user preference value.
+   * Get a user preference value, waiting for prefs to be loaded first.
    *
    * @param key - The preference key
    * @param defaultValue - Value to return if the preference is not set
    * @returns The stored preference value or the default
    */
-  const getPref = <T = unknown>(key: string, defaultValue: T): T => {
+  const getPref = async <T = unknown>(
+    key: string,
+    defaultValue: T
+  ): Promise<T> => {
+    await ensurePrefsReady();
     const value = userPrefs.value[key];
     if (value === undefined) {
       return defaultValue;
@@ -1447,6 +1497,7 @@ export const useUserStore = defineStore("user", () => {
         );
       }
       if (!isAuthenticated.value) throw new Error("User not authenticated");
+      await ensurePrefsReady();
       if (!rootDocOpen) {
         logger.log("Root doc not open; initializing...");
         await initializeUserPrefs();
@@ -1482,6 +1533,7 @@ export const useUserStore = defineStore("user", () => {
     try {
       deletePrefLogger.debug("Request", { key });
       if (!isAuthenticated.value) throw new Error("User not authenticated");
+      await ensurePrefsReady();
       const prefs = await UserPref.query({ key });
       deletePrefLogger.debug("Found records", { count: prefs.data.length });
       for (const pref of prefs.data) await pref.delete();
@@ -1503,6 +1555,7 @@ export const useUserStore = defineStore("user", () => {
    * Useful when prefs may have been loaded before the root doc finished syncing.
    */
   const refreshPrefs = async (): Promise<void> => {
+    await ensurePrefsReady();
     await loadUserPrefs();
   };
 
@@ -1516,6 +1569,7 @@ export const useUserStore = defineStore("user", () => {
     try {
       clearAllLogger.debug("Request");
       if (!isAuthenticated.value) throw new Error("User not authenticated");
+      await ensurePrefsReady();
       const prefs = await UserPref.query({});
       clearAllLogger.debug("Found records", {
         count: prefs.data.length,
@@ -1548,6 +1602,7 @@ export const useUserStore = defineStore("user", () => {
 
     // actions
     initialize,
+    loadAuthConfig,
     login,
     handleOAuthCallback,
     logout,
@@ -1580,5 +1635,6 @@ export const useUserStore = defineStore("user", () => {
     getAllPrefs,
     refreshPrefs,
     clearAllPrefs,
+    ensurePrefsReady,
   };
 });

@@ -706,6 +706,8 @@ function validateRouteExists(routeName: string, propName: string): boolean {
 
 // Lifecycle
 onMounted(() => {
+  void user.loadAuthConfig();
+
   // Validate route props early to catch configuration errors
   if (props.continueRoute) {
     validateRouteExists(props.continueRoute, "continueRoute");

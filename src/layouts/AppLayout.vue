@@ -96,6 +96,8 @@ function onKeyDown(e: KeyboardEvent): void {
 }
 
 onMounted(() => {
+  void userStore.loadAuthConfig();
+
   try {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
       swDisconnected.value = false;

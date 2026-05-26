@@ -89,19 +89,15 @@ function handleUserMenuItemClick(itemId: string): void {
   <Sidebar :collapsible="props.mobile ? 'none' : 'icon'">
     <!-- App header -->
     <SidebarHeader>
-      <div class="pt-1 px-1">
-        <div class="flex w-full items-center gap-2 rounded-md p-2">
-          <img
-            :src="primitiveLogoIcon"
-            alt="App Icon"
-            class="size-5 shrink-0"
-          />
-          <span
-            class="flex-1 text-left text-base font-medium leading-tight truncate"
-          >
-            Template App
-          </span>
-        </div>
+      <div
+        class="flex w-full items-center gap-2 rounded-md px-3 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-0"
+      >
+        <img :src="primitiveLogoIcon" alt="App Icon" class="size-5 shrink-0" />
+        <span
+          class="flex-1 text-left text-base font-medium leading-tight truncate group-data-[collapsible=icon]:hidden"
+        >
+          Template App
+        </span>
       </div>
     </SidebarHeader>
 
