@@ -550,25 +550,6 @@ function clearAvatarSelection(): void {
   }
 }
 
-function skipProfile(): void {
-  // Only allow skip if name is not required
-  if (effectiveConfig.value.requireName && !userName.value.trim()) return;
-
-  handleAfterProfile();
-}
-
-async function handleAfterProfile(): Promise<void> {
-  const shouldPromptPasskey = await checkShouldPromptPasskey();
-  if (shouldPromptPasskey) {
-    passkeyDeviceName.value = user.getSuggestedDeviceName();
-    callbackState.value = "passkey-prompt";
-    return;
-  }
-
-  callbackState.value = "redirecting";
-  router.push(redirectTo.value);
-}
-
 async function handleAddPasskey(): Promise<void> {
   const passkeyLogger = logger.forScope("handleAddPasskey");
 

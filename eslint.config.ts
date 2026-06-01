@@ -34,6 +34,18 @@ export default defineConfigWithVueTs(
     files: ["src/models/*.generated.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-declaration-merging": "off",
+      "@typescript-eslint/prefer-as-const": "off",
+    },
+  },
+
+  // shadcn-vue base components are vendored verbatim under src/components/ui
+  // with intentionally single-word names (Button, Card, …). Renaming them
+  // would diverge from upstream, so exempt them from the multi-word rule.
+  {
+    name: "primitive-app-template/shadcn-ui-components",
+    files: ["src/components/ui/**/*.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off",
     },
   }
 );

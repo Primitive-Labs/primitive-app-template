@@ -1,5 +1,3 @@
-const SW_VERSION = "sw-v1";
-
 function logError(context, error, extra) {
   const info = {
     context,
@@ -10,7 +8,7 @@ function logError(context, error, extra) {
   };
   try {
     console.error("[ServiceWorker][Error]", info);
-  } catch (_) {}
+  } catch {}
 }
 
 const STATE = {
@@ -168,7 +166,7 @@ async function getAuthTokenFromIDB(appId) {
 
     db.close();
     return token;
-  } catch (e) {
+  } catch {
     // Database doesn't exist or other error - return null
     return null;
   }
@@ -263,7 +261,7 @@ self.addEventListener("message", (event) => {
   }
 });
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   try {
     self.skipWaiting();
   } catch (e) {
@@ -296,7 +294,7 @@ try {
       await getCachedAuthToken();
     }
   }, 60000);
-} catch (_) {}
+} catch {}
 
 self.addEventListener("fetch", (event) => {
   try {
@@ -469,7 +467,7 @@ try {
   self.addEventListener("unhandledrejection", (event) => {
     logError("global.unhandledrejection", (event && event.reason) || event);
   });
-} catch (_) {}
+} catch {}
 
 // Load state on script startup
 stateLoadedPromise = (async () => {
