@@ -17,7 +17,7 @@ import AppSidebar from "@/components/AppSidebar.vue";
 import PrimitiveLogoSpinner from "@/components/shared/PrimitiveLogoSpinner.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@vueuse/core";
-import { Home, Key, User } from "lucide-vue-next";
+import { Home, Key, User } from "@lucide/vue";
 import EditProfile from "@/components/auth/EditProfile.vue";
 import PasskeyManagement from "@/components/auth/PasskeyManagement.vue";
 import PrimitiveMobileTabBar, {

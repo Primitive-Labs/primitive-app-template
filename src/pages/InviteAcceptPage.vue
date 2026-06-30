@@ -14,7 +14,7 @@
  *   token through to magicLinkVerify / otpVerify / passkeyRegisterFinish
  *   / startOAuthFlow so the server resolves grants in one round-trip.
  */
-import { AlertTriangle, Check, Lock, Mail } from "lucide-vue-next";
+import { AlertTriangle, Check, Lock, Mail } from "@lucide/vue";
 import type { Component } from "vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";

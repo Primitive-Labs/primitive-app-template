@@ -11,15 +11,8 @@ import {
   startAuthentication,
   WebAuthnAbortService,
 } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
-import {
-  ArrowLeft,
-  Clock,
-  KeyRound,
-  Loader2,
-  Lock,
-  Mail,
-} from "lucide-vue-next";
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
+import { ArrowLeft, Clock, KeyRound, Loader2, Lock, Mail } from "@lucide/vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { getPendingInviteToken } from "@/lib/inviteToken";

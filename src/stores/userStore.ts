@@ -966,10 +966,7 @@ export const useUserStore = defineStore("user", () => {
    * Supported content types for avatar upload.
    */
   type AvatarContentType =
-    | "image/png"
-    | "image/jpeg"
-    | "image/gif"
-    | "image/webp";
+    "image/png" | "image/jpeg" | "image/gif" | "image/webp";
 
   /** Maximum avatar file size in bytes (1MB server limit) */
   const MAX_AVATAR_SIZE = 1 * 1024 * 1024;

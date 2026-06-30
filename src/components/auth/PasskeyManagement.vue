@@ -6,9 +6,9 @@
  * It uses a Dialog on desktop and a bottom Sheet on mobile.
  */
 import { startRegistration } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
+import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useMediaQuery } from "@vueuse/core";
-import { Check, Key, Loader2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
+import { Check, Key, Loader2, Pencil, Plus, Trash2, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { appBaseLogger } from "@/lib/logger";
 import { type PasskeyInfo, useUserStore } from "@/stores/userStore";

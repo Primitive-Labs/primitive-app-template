@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import primitiveLogoIcon from "@/assets/primitive-logo.png";
 import Autoplay from "embla-carousel-autoplay";
-import { Activity, PieChart, TrendingDown } from "lucide-vue-next";
+import { Activity, PieChart, TrendingDown } from "@lucide/vue";
 import {
   Carousel,
   CarouselContent,

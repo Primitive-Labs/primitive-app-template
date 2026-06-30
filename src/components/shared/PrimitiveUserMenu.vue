@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronsUpDown } from "lucide-vue-next";
+import { ChevronsUpDown } from "@lucide/vue";
 import type { Component } from "vue";
 
 export interface UserMenuUserInfo {

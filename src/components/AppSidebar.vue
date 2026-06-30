@@ -28,7 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useUserStore } from "@/stores/userStore";
-import { Home, Key, LogOut, Pencil } from "lucide-vue-next";
+import { Home, Key, LogOut, Pencil } from "@lucide/vue";
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 

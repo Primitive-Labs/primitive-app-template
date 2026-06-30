@@ -5,7 +5,7 @@
  * Supports profile completion and passkey registration prompts for new users.
  */
 import { startRegistration } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
+import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import {
   AlertTriangle,
   Camera,
@@ -16,7 +16,7 @@ import {
   Mail,
   User,
   X,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import type { Component } from "vue";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";

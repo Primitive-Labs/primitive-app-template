@@ -7,7 +7,7 @@
  * Fields shown are controlled by the profileConfig prop.
  */
 import { useMediaQuery } from "@vueuse/core";
-import { Camera, Check, Loader2, X } from "lucide-vue-next";
+import { Camera, Check, Loader2, X } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { appBaseLogger } from "@/lib/logger";
 import { useUserStore } from "@/stores/userStore";
@@ -142,10 +142,7 @@ function initializeForm(): void {
 
 // Avatar handling
 type AvatarContentType =
-  | "image/png"
-  | "image/jpeg"
-  | "image/gif"
-  | "image/webp";
+  "image/png" | "image/jpeg" | "image/gif" | "image/webp";
 
 function getAvatarContentType(mimeType: string): AvatarContentType | null {
   const validTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
