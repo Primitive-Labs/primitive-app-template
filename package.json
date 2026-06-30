@@ -35,7 +35,7 @@
     "js-bao-wss-client": "^2.0.4",
     "lodash.debounce": "^4.0.8",
     "pinia": "^3.0.4",
-    "primitive-app": "link:../primitive-app",
+    "primitive-app": "^3.0.2",
     "reka-ui": "^2.10.1",
     "shadcn-vue": "^2.7.4",
     "tailwind-merge": "^3.6.0",
