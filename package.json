@@ -22,7 +22,7 @@
     "codegen": "npx js-bao-codegen-v2 -i src/models/models.toml -o src/models && (! ls .primitive/sync/*/*/database-types/*.toml >/dev/null 2>&1 || primitive databases codegen -o src/types/generated) && pnpm format"
   },
   "dependencies": {
-    "@lucide/vue": "^1.22.0",
+    "@lucide/vue": "^1.24.0",
     "@simplewebauthn/browser": "^13.3.0",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/vue-table": "^8.21.3",
@@ -35,7 +35,7 @@
     "js-bao-wss-client": "^2.0.4",
     "lodash.debounce": "^4.0.8",
     "pinia": "^3.0.4",
-    "primitive-app": "^3.0.2",
+    "primitive-app": "^3.0.3",
     "reka-ui": "^2.10.1",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.2",
@@ -47,7 +47,7 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.5",
     "@types/lodash.debounce": "^4.0.9",
-    "@types/node": "^26.0.1",
+    "@types/node": "^26.1.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
     "@vue/eslint-config-prettier": "^10.2.0",
@@ -57,14 +57,14 @@
     "eslint-plugin-vue": "~10.9.2",
     "jiti": "^2.7.0",
     "npm-run-all2": "^9.0.2",
-    "prettier": "3.9.4",
+    "prettier": "3.9.5",
     "primitive-admin": "^1.0.53",
     "shadcn-vue": "^2.7.4",
     "typescript": "~6.0.3",
-    "vite": "^8.1.2",
+    "vite": "^8.1.4",
     "vite-plugin-vue-devtools": "^8.1.5",
-    "vue-tsc": "^3.3.6",
-    "wrangler": "^4.106.0"
+    "vue-tsc": "^3.3.7",
+    "wrangler": "^4.110.0"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }

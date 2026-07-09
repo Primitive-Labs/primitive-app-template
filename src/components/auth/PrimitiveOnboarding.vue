@@ -508,9 +508,7 @@ onMounted(() => {
 <template>
   <!-- Processing / Redirecting State -->
   <div
-    v-if="
-      onboardingState === 'processing' || onboardingState === 'redirecting'
-    "
+    v-if="onboardingState === 'processing' || onboardingState === 'redirecting'"
     class="min-h-screen flex items-center justify-center"
   >
     <component :is="props.loadingComponent || PrimitiveLogoSpinner" />
