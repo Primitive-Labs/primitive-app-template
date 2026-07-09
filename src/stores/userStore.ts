@@ -1521,17 +1521,17 @@ export const useUserStore = defineStore("user", () => {
       if (!rootDocumentId) throw new Error("Root document not initialized");
       const serializedValue = JSON.stringify(value);
 
-      // WORKAROUND: upsertByUnique creates duplicates instead of updating.
-      // Delete all existing records with this key first, then create a new one.
-      const existingPrefs = await UserPref.query({ key });
-      for (const pref of existingPrefs.data) {
-        await pref.delete();
-      }
-
-      const newPref = new UserPref();
-      newPref.key = key;
-      newPref.value = serializedValue;
-      await newPref.save({ targetDocument: rootDocumentId });
+      // Upsert in place by the unique `key` constraint. Current js-bao
+      // updates the existing record (create-on-missing otherwise), so pref
+      // writes keep stable record identity — `UserPref.subscribe` consumers
+      // see an update rather than a delete/create pair, and concurrent
+      // cross-device writes to the same key no longer race into duplicates.
+      await UserPref.upsertByUnique(
+        "user_prefs_key_unique",
+        key,
+        { key, value: serializedValue },
+        { targetDocument: rootDocumentId }
+      );
     } catch (error) {
       setPrefLogger.error(`Error setting pref ${key}:`, error);
       throw error;
