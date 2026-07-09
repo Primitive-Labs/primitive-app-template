@@ -121,7 +121,8 @@ const autoplayPlugin = Autoplay({
       <PrimitiveLogin
         :appName="config.appName"
         defaultContinueRoute="home"
-        emailAuthMethod="magic_link"
+        emailAuthMethod="one_time_code"
+        onboardingRoute="onboarding"
       >
         <template #header>
           <div class="flex justify-center gap-2 lg:justify-start">

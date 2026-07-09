@@ -3,6 +3,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import LoginLayout from "@/layouts/LoginLayout.vue";
 import PrimitiveLogout from "@/components/auth/PrimitiveLogout.vue";
 import PrimitiveOauthCallback from "@/components/auth/PrimitiveOauthCallback.vue";
+import PrimitiveOnboarding from "@/components/auth/PrimitiveOnboarding.vue";
 import { createPrimitiveRouter } from "@/router/primitiveRouter";
 import type { RouteRecordRaw } from "vue-router";
 import { createWebHistory } from "vue-router";
@@ -52,8 +53,23 @@ const routes: RouteRecordRaw[] = [
         path: oauthCallbackPath,
         name: "oauth-callback",
         component: PrimitiveOauthCallback,
-        props: { continueRoute: "home", loginRoute: "login" },
+        props: {
+          continueRoute: "home",
+          loginRoute: "login",
+          onboardingRoute: "onboarding",
+        },
         meta: publicRoute,
+      },
+      {
+        // Shared post-sign-in onboarding step (profile completion + passkey
+        // prompt). Every sign-in method funnels through here for new users.
+        // Requires sign-in: the router guard sends signed-out visitors to
+        // login, and the user is always authenticated by the time they arrive.
+        path: "onboarding",
+        name: "onboarding",
+        component: PrimitiveOnboarding,
+        props: { continueRoute: "home" },
+        meta: signedIn,
       },
       {
         path: "invite/accept",

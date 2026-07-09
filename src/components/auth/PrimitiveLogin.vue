@@ -92,6 +92,20 @@ interface Props {
    * - `one_time_code`: User receives a 6-digit code to enter in the app
    */
   emailAuthMethod?: EmailAuthMethod;
+  /**
+   * Named onboarding route that runs profile completion + passkey prompt for
+   * new users. When set, in-app sign-ins (OTP, passkey conditional UI) route
+   * here — with the continue URL and `isNewUser` passed as query params —
+   * before landing on the continue URL, so every sign-in method funnels
+   * through the same onboarding step. Either `onboardingRoute` or
+   * `onboardingUrl` may be provided; when neither is set, sign-in continues
+   * straight to the continue URL with no onboarding.
+   */
+  onboardingRoute?: string;
+  /**
+   * Absolute/path onboarding URL. Alternative to `onboardingRoute`.
+   */
+  onboardingUrl?: string;
 }
 
 const props = defineProps<Props>();
@@ -288,6 +302,42 @@ function navigate(url?: string, routeName?: string): void {
   }
 }
 
+/**
+ * Continue after a successful in-app sign-in. Routes new users through the
+ * shared onboarding step (profile completion + passkey prompt) when an
+ * onboarding target is configured; otherwise navigates straight to the
+ * continue URL. Sign-in context is passed as query params so it survives a
+ * page refresh, mirroring the OAuth/magic-link callback hand-off.
+ */
+function proceedAfterAuth(
+  isNewUser: boolean,
+  promptAddPasskey?: boolean
+): void {
+  if (props.onboardingRoute || props.onboardingUrl) {
+    const query: Record<string, string> = {
+      continueURL: continueUrl.value,
+      isNewUser: isNewUser ? "1" : "0",
+    };
+    if (promptAddPasskey) query.promptAddPasskey = "1";
+
+    if (props.onboardingRoute) {
+      router.push({ name: props.onboardingRoute, query });
+      return;
+    }
+
+    if (props.onboardingUrl) {
+      const url = new URL(props.onboardingUrl, window.location.origin);
+      for (const [k, v] of Object.entries(query)) {
+        url.searchParams.set(k, v);
+      }
+      router.push(url.pathname + url.search + url.hash);
+      return;
+    }
+  }
+
+  router.push(continueUrl.value);
+}
+
 function resetToInitial(): void {
   loginState.value = "initial";
   error.value = null;
@@ -385,10 +435,12 @@ async function handleOtpVerify(): Promise<void> {
     isLoading.value = true;
     error.value = null;
 
-    await user.verifyOtp(sentEmail.value, otpCode.value);
+    const result = await user.verifyOtp(sentEmail.value, otpCode.value);
 
-    logger.debug("OTP verified successfully, redirecting");
-    router.push(continueUrl.value);
+    logger.debug("OTP verified successfully, continuing", {
+      isNewUser: result.isNewUser,
+    });
+    proceedAfterAuth(result.isNewUser ?? false, result.promptAddPasskey);
   } catch (e: unknown) {
     logger.error("OTP verification error", e);
     loginState.value = "otp-code-entry";
@@ -529,10 +581,12 @@ async function startPasskeyConditionalUI(): Promise<void> {
     logger.debug("Passkey credential received");
 
     // Complete authentication
-    await user.signInWithPasskey(credential, challengeToken);
+    const result = await user.signInWithPasskey(credential, challengeToken);
 
-    logger.debug("Passkey sign-in successful, redirecting");
-    router.push(continueUrl.value);
+    logger.debug("Passkey sign-in successful, continuing", {
+      isNewUser: result.isNewUser,
+    });
+    proceedAfterAuth(result.isNewUser ?? false);
   } catch (e: unknown) {
     // Don't log abort errors - they're expected when user types email instead
     if (e instanceof Error && e.name === "AbortError") {

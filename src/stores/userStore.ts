@@ -111,6 +111,8 @@ export interface OtpVerifyResult {
   };
   /** True if this is a newly created user (first sign-in) */
   isNewUser?: boolean;
+  /** True if user should be prompted to add a passkey */
+  promptAddPasskey?: boolean;
 }
 
 type AuthFailedPayload = JsBaoEvents["auth-failed"];
@@ -749,12 +751,19 @@ export const useUserStore = defineStore("user", () => {
     try {
       const client = await jsBaoClientService.getClientAsync();
       const inviteToken = getPendingInviteToken() ?? undefined;
-      const result = await client.otpVerify(email, code, { inviteToken });
+      // Cast result to include promptAddPasskey which is returned by the API
+      // but not yet in the public types (isNewUser is already surfaced).
+      const result = (await client.otpVerify(email, code, { inviteToken })) as {
+        user: { userId: string; email: string; name?: string };
+        isNewUser?: boolean;
+        promptAddPasskey?: boolean;
+      };
       if (inviteToken) clearPendingInviteToken();
 
       otpLogger.debug("OTP verified successfully", {
         userId: result.user.userId,
         isNewUser: result.isNewUser,
+        promptAddPasskey: result.promptAddPasskey,
       });
 
       await completeAuthentication();
@@ -763,6 +772,7 @@ export const useUserStore = defineStore("user", () => {
         ok: true,
         user: result.user,
         isNewUser: result.isNewUser,
+        promptAddPasskey: result.promptAddPasskey,
       };
     } catch (err: unknown) {
       otpLogger.error("OTP verification failed:", err);
