@@ -27,7 +27,16 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
-        ws: fileURLToPath(new URL("./src/ws-browser-stub.js", import.meta.url)),
+        // In browser bundles the js-bao client uses native WebSocket; stub the
+        // Node `ws` package out of the bundle. Under vitest the tests run in
+        // Node and need the real `ws`, so skip the stub there.
+        ...(process.env.VITEST
+          ? {}
+          : {
+              ws: fileURLToPath(
+                new URL("./src/ws-browser-stub.js", import.meta.url)
+              ),
+            }),
       },
     },
   };

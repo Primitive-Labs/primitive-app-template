@@ -71,6 +71,8 @@ Visit `http://localhost:5173`.
 - `primitiveDevTools` plugin registered in `vite.config.ts`
 - Tests live in `src/tests/*.primitive-test.ts`
 - Open the runner in dev with **Cmd+Shift+L** (configurable in `vite.config.ts`)
+- The same tests also run headlessly for CI via `pnpm test` — see
+  [Running harness tests headlessly (CI)](#running-harness-tests-headlessly-ci)
 
 ### Deploy
 - Cloudflare Workers via `wrangler.toml` + `worker.js` + `scripts/deploy.mjs`
@@ -116,6 +118,7 @@ For TOML field options, types, and codegen conventions: `primitive guides get mo
 | `pnpm dev` | Run codegen, then start the Vite dev server |
 | `pnpm build` | Run codegen, type-check, and build for production |
 | `pnpm build-only` | Vite build only (skips type-check) |
+| `pnpm test` | Run codegen, then run the registered harness tests headlessly under vitest |
 | `pnpm preview` | Serve the production build locally |
 | `pnpm codegen` | Regenerate `*.generated.ts` from `models.toml` |
 | `pnpm type-check` | `vue-tsc --build` |
@@ -123,6 +126,59 @@ For TOML field options, types, and codegen conventions: `primitive guides get mo
 | `pnpm format` / `pnpm format:check` | Prettier write / check |
 | `pnpm cf-deploy <env>` | Build and deploy to Cloudflare Workers (see below) |
 | `pnpm clean` / `pnpm clean-modules` | Remove `dist/` / `node_modules` + lockfile |
+
+## Running Harness Tests Headlessly (CI)
+
+`pnpm test` runs every registered `src/tests/*.primitive-test.ts` group under
+vitest in Node — the exact same groups the in-browser Test Harness panel
+(Cmd+Shift+L) runs — so registered tests can gate merges in CI. No browser or
+headless-browser stack is involved: the js-bao client drives the full
+document/model lifecycle natively in Node.
+
+### Prerequisites
+
+1. **Whitelist a test sign-in email for your app.** The headless run signs in
+   through the OTP test bypass (code `000000`), which only works for emails
+   whose base address the app owner has whitelisted:
+
+   ```bash
+   primitive apps update <your-app-id> --test-account-bases "you@yourdomain.com"
+   ```
+
+   Then any `you+primitivetest-<suffix>@yourdomain.com` address signs in with
+   code `000000` and auto-provisions a test user. Use a **stable suffix** per
+   CI project (e.g. `you+primitivetest-ci@yourdomain.com`) so runs reuse one
+   test user instead of creating new ones.
+
+2. **`ws`** must be installed (it is a devDependency of this template) — the
+   js-bao client needs it for WebSockets in Node.
+
+### Running
+
+```bash
+PRIMITIVE_TEST_EMAIL="you+primitivetest-ci@yourdomain.com" pnpm test
+```
+
+For CI systems that consume JUnit output:
+
+```bash
+PRIMITIVE_TEST_EMAIL="..." pnpm vitest run --reporter=junit --outputFile=test-results.xml
+```
+
+### Notes
+
+- App IDs and server URLs come from `.env` (`VITE_APP_ID`, `VITE_API_URL`,
+  `VITE_WS_URL`) via `src/tests/primitive-tests.spec.ts`; override per run
+  with vitest `--mode` and the matching `.env.<mode>` file.
+- Tests that return a score (`"passed/total (pct%)"`) fail the run when below
+  a full score, so parity-style suites actually gate CI. The browser panel
+  shows the same result as "scored" without failing.
+- Invite-only, domain-restricted, and waitlist apps reject test-account
+  provisioning like any other signup — the run fails with a clear auth error.
+- The bypass token lives ~30 minutes. If a single suite runs longer, split it
+  or re-run per shard.
+- A test file that fails to load (import error, wrong default export) surfaces
+  as a failing test — never a silent skip.
 
 ## Configuration: `.env` Files
 

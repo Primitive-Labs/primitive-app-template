@@ -17,6 +17,19 @@ modifying user-facing components.
 - Unless specifically directed otherwise, ALWAYS build UI that's responsive to desktop, tablet, and mobile phone sized screens.
 - If you write UI components that utilize desktop UX patterns (like Dialogs) ALWAYS provide a phone pattern (like a Sheet) that is used on smaller screens.
 
+## Page Layout & Width
+
+- Pages fill the full width of the layout's content area. The app layout
+  (`src/layouts/`) already provides the page padding, so a page's root element
+  should be a plain full-width container (see `src/pages/HomePage.vue`).
+- NEVER wrap a page in `mx-auto` + `max-w-*` (e.g. `max-w-3xl`) to center a
+  narrow column. This makes the rendered width unstable — it collapses to the
+  widest element on the page and shifts as content changes. Only build a
+  centered narrow page when the user explicitly asks for one.
+- When something on a page genuinely needs a width limit (a lone form field, a
+  reading-width paragraph), constrain THAT element, not the page container.
+  Tables, lists, cards, and dashboards stay full width.
+
 ## shadcn-vue & Component Library
 
 - ALWAYS use shadcn-vue components without modification if possible.
